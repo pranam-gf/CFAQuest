@@ -1,21 +1,23 @@
 {
-  "build": {
-    "env": {
-      "NODE_ENV": "production"
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/server"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/client/dist/$1"
     }
-  },
-  "routes": [
+  ],
+  "builds": [
     {
-      "src": "/api/(.*)",
-      "dest": "/dist/index.js"
+      "src": "client/index.html",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "client/dist" }
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "/dist/public/assets/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/dist/public/index.html"
+      "src": "server/index.ts",
+      "use": "@vercel/node"
     }
   ]
 }

@@ -1,3 +1,4 @@
+import React from 'react';
 import { getProviderInfo } from "@/lib/provider-mapping";
 
 interface ProviderLogoProps {
@@ -21,30 +22,20 @@ export function ProviderLogo({ modelName, size = "md", showName = false }: Provi
     lg: "text-base"
   };
 
-  const renderLogo = () => {
-    if (typeof provider.logo === 'string') {
-      return (
-        <div 
-          className={`${sizeClasses[size]} flex-shrink-0`}
-          style={{ color: provider.color }}
-          dangerouslySetInnerHTML={{ __html: provider.logo }}
-        />
-      );
-    }
-    
-    return (
-      <div 
-        className={`${sizeClasses[size]} flex-shrink-0`}
-        style={{ color: provider.color }}
-      >
-        {provider.logo}
-      </div>
-    );
+  const Logo = provider.logo;
+
+  const logoProps = {
+    className: `${sizeClasses[size]} flex-shrink-0`,
+    style: { color: provider.color },
   };
 
   return (
     <div className="flex items-center space-x-2">
-      {renderLogo()}
+      {typeof Logo === 'function' ? (
+        <Logo {...logoProps} />
+      ) : (
+        React.cloneElement(Logo, logoProps)
+      )}
       {showName && (
         <span className={`${textSizeClasses[size]} font-medium text-slate-900`}>
           {provider.name}

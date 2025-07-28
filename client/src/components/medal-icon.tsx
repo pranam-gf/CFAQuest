@@ -1,42 +1,72 @@
+import React from 'react';
+
+// --- Reusable SVG Medal Component ---
+
+interface MedalSvgProps {
+  className?: string;
+  circleFill: string;
+  strokeColor: string;
+  pathFill: string;
+  textColor: string;
+  rank: number;
+}
+
+const MedalSvg: React.FC<MedalSvgProps> = ({ 
+  className, 
+  circleFill, 
+  strokeColor, 
+  pathFill, 
+  textColor, 
+  rank 
+}) => (
+  <svg viewBox="0 0 24 24" className={className} fill="none">
+    <circle cx="12" cy="10" r="6" fill={circleFill} stroke={strokeColor} strokeWidth="1"/>
+    <path d="M8 6L6 2L10 3L8 6Z" fill={pathFill}/>
+    <path d="M16 6L18 2L14 3L16 6Z" fill={pathFill}/>
+    <text x="12" y="13" textAnchor="middle" fontSize="8" fontWeight="bold" fill={textColor}>
+      {rank}
+    </text>
+  </svg>
+);
+
+// --- Style Mapping for Medals ---
+
+const medalStyles: { [key: number]: Omit<MedalSvgProps, 'rank' | 'className'> } = {
+  1: { // Gold
+    circleFill: "#FFD700",
+    strokeColor: "#FFA500",
+    pathFill: "#FFD700",
+    textColor: "#B8860B",
+  },
+  2: { // Silver
+    circleFill: "#C0C0C0",
+    strokeColor: "#A9A9A9",
+    pathFill: "#C0C0C0",
+    textColor: "#696969",
+  },
+  3: { // Bronze
+    circleFill: "#CD7F32",
+    strokeColor: "#B8860B",
+    pathFill: "#CD7F32",
+    textColor: "#8B4513",
+  },
+};
+
+// --- Main MedalIcon Component ---
+
 interface MedalIconProps {
   rank: number;
   className?: string;
 }
 
 export function MedalIcon({ rank, className = "w-5 h-5" }: MedalIconProps) {
-  if (rank === 1) {
-    return (
-      <svg viewBox="0 0 24 24" className={className} fill="none">
-        <circle cx="12" cy="10" r="6" fill="#FFD700" stroke="#FFA500" strokeWidth="1"/>
-        <path d="M8 6L6 2L10 3L8 6Z" fill="#FFD700"/>
-        <path d="M16 6L18 2L14 3L16 6Z" fill="#FFD700"/>
-        <text x="12" y="13" textAnchor="middle" fontSize="8" fontWeight="bold" fill="#B8860B">1</text>
-      </svg>
-    );
+  const styles = medalStyles[rank];
+
+  if (styles) {
+    return <MedalSvg {...styles} rank={rank} className={className} />;
   }
   
-  if (rank === 2) {
-    return (
-      <svg viewBox="0 0 24 24" className={className} fill="none">
-        <circle cx="12" cy="10" r="6" fill="#C0C0C0" stroke="#A9A9A9" strokeWidth="1"/>
-        <path d="M8 6L6 2L10 3L8 6Z" fill="#C0C0C0"/>
-        <path d="M16 6L18 2L14 3L16 6Z" fill="#C0C0C0"/>
-        <text x="12" y="13" textAnchor="middle" fontSize="8" fontWeight="bold" fill="#696969">2</text>
-      </svg>
-    );
-  }
-  
-  if (rank === 3) {
-    return (
-      <svg viewBox="0 0 24 24" className={className} fill="none">
-        <circle cx="12" cy="10" r="6" fill="#CD7F32" stroke="#B8860B" strokeWidth="1"/>
-        <path d="M8 6L6 2L10 3L8 6Z" fill="#CD7F32"/>
-        <path d="M16 6L18 2L14 3L16 6Z" fill="#CD7F32"/>
-        <text x="12" y="13" textAnchor="middle" fontSize="8" fontWeight="bold" fill="#8B4513">3</text>
-      </svg>
-    );
-  }
-  
+  // Fallback for ranks other than 1, 2, 3
   return (
     <span className={`flex items-center justify-center text-xs font-bold text-slate-600 ${className}`}>
       {rank}

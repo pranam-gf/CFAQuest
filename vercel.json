@@ -11,9 +11,9 @@
   ],
   "builds": [
     {
-      "src": "client/index.html",
+      "src": "client/**",
       "use": "@vercel/static-build",
-      "config": { "distDir": "client/dist" }
+      "config": { "outputDirectory": "client/dist" }
     },
     {
       "src": "server/index.ts",

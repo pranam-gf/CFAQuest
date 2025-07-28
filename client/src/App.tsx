@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Overall from "@/pages/overall";
 import McqPage from "@/pages/mcq-page";
 import EssayPage from "@/pages/essay-page";
+import ComparePage from "@/pages/compare-page";
 
 function Router() {
   return (
@@ -17,7 +18,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/mcq" component={McqPage} />
       <Route path="/essay" component={EssayPage} />
-      <Route path="/compare" component={Dashboard} />
+      <Route path="/compare" component={ComparePage} />
       <Route component={NotFound} />
     </Switch>
   );

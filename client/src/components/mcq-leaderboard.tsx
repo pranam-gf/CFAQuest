@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Scale, Filter, ArrowUpDown } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import { McqEvaluation } from "@/types/models";
 import { sortData, searchData, filterData } from "@/lib/data-processing";
 import { ProviderLogo } from "@/components/provider-logo";

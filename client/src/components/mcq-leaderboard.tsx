@@ -11,6 +11,22 @@ import { McqEvaluation } from "@/types/models";
 import { sortData, searchData, filterData } from "@/lib/data-processing";
 import { ProviderLogo } from "@/components/provider-logo";
 import { MedalIcon } from "@/components/medal-icon";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
+
+const strategyDisplayNames: Record<string, string> = {
+  "Default (Single Pass)": "Zero-Shot",
+  "Self-Consistency CoT (N=3 samples)": "SC-CoT N=3",
+  "Self-Consistency CoT (N=5 samples)": "SC-CoT N=5",
+  "Self-Discover": "Self-Discover",
+};
+
+const strategyDescriptions: Record<string, string> = {
+  "Default (Single Pass)": "The model generates a response in a single pass, without any complex prompting techniques.",
+  "Self-Consistency CoT (N=3 samples)": "Self-Consistency with Chain-of-Thought, sampling 3 reasoning paths.",
+  "Self-Consistency CoT (N=5 samples)": "Self-Consistency with Chain-of-Thought, sampling 5 reasoning paths.",
+  "Self-Discover": "The model autonomously discovers reasoning structures to solve complex problems.",
+};
 
 export function McqLeaderboard() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -57,7 +73,7 @@ export function McqLeaderboard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-signifier">MCQ Performance Leaderboard</CardTitle>
+        <CardTitle className="font-semibold">MCQ Performance Leaderboard</CardTitle>
         <div className="flex flex-col sm:flex-row gap-3">
           <Input
             placeholder="Search models..."
@@ -81,9 +97,9 @@ export function McqLeaderboard() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Strategies</SelectItem>
-              <SelectItem value="Default (Single Pass)">Default</SelectItem>
-              <SelectItem value="Self-Consistency CoT (N=3 samples)">Self-Consistency N3</SelectItem>
-              <SelectItem value="Self-Consistency CoT (N=5 samples)">Self-Consistency N5</SelectItem>
+              <SelectItem value="Default (Single Pass)">Zero-Shot</SelectItem>
+              <SelectItem value="Self-Consistency CoT (N=3 samples)">SC-CoT N=3</SelectItem>
+              <SelectItem value="Self-Consistency CoT (N=5 samples)">SC-CoT N=5</SelectItem>
               <SelectItem value="Self-Discover">Self-Discover</SelectItem>
             </SelectContent>
           </Select>
@@ -94,45 +110,61 @@ export function McqLeaderboard() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Rank</TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort("model")} className="h-auto p-0">
+                <TableHead className="font-medium">Rank</TableHead>
+                <TableHead className="font-medium">
+                  <Button variant="ghost" onClick={() => handleSort("model")} className="h-auto p-0 font-medium">
                     Model <ArrowUpDown className="ml-1 w-3 h-3" />
                   </Button>
                 </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort("accuracy")} className="h-auto p-0">
+                <TableHead className="font-medium">
+                  <Button variant="ghost" onClick={() => handleSort("accuracy")} className="h-auto p-0 font-medium">
                     Accuracy <ArrowUpDown className="ml-1 w-3 h-3" />
                   </Button>
                 </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort("avgTimePerQuestion")} className="h-auto p-0">
+                <TableHead className="font-medium">
+                  <Button variant="ghost" onClick={() => handleSort("avgTimePerQuestion")} className="h-auto p-0 font-medium">
                     Avg Time (s) <ArrowUpDown className="ml-1 w-3 h-3" />
                   </Button>
                 </TableHead>
-                <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort("totalCost")} className="h-auto p-0">
+                <TableHead className="font-medium">
+                  <Button variant="ghost" onClick={() => handleSort("totalCost")} className="h-auto p-0 font-medium">
                     Total Cost ($) <ArrowUpDown className="ml-1 w-3 h-3" />
                   </Button>
                 </TableHead>
-                <TableHead>Provider</TableHead>
-                <TableHead className="w-36">Model Type</TableHead>
-                <TableHead>Strategy</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="font-medium">Provider</TableHead>
+                <TableHead className="w-36 font-medium">Model Type</TableHead>
+                <TableHead className="font-medium">
+                  <div className="flex items-center">
+                    Strategy
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="ml-2 w-4 h-4 text-slate-500 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {Object.entries(strategyDescriptions).map(([key, value]) => (
+                            <p key={key}><strong>{strategyDisplayNames[key] || key}:</strong> {value}</p>
+                          ))}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </TableHead>
+                <TableHead className="font-medium">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedData.map((model, index) => (
                 <TableRow key={model.id} className="hover:bg-slate-50">
-                  <TableCell>
+                  <TableCell className="font-light">
                     <div className="flex items-center justify-center">
                       <MedalIcon rank={index + 1} />
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="font-light">
                     <div className="text-sm font-medium text-slate-900">{model.model}</div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="font-light">
                     <div className="flex items-center">
                       <div className="flex-1 bg-slate-200 rounded-full h-2 mr-3">
                         <div
@@ -145,26 +177,26 @@ export function McqLeaderboard() {
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-sm text-slate-900">
+                  <TableCell className="text-sm text-slate-900 font-light">
                     {model.avgTimePerQuestion.toFixed(2)}
                   </TableCell>
-                  <TableCell className="text-sm text-slate-900">
+                  <TableCell className="text-sm text-slate-900 font-light">
                     ${model.totalCost.toFixed(2)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="font-light">
                     <ProviderLogo modelName={model.model} showName />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="font-light">
                     <Badge variant={model.modelType === "Reasoning" ? "default" : "secondary"}>
                       {model.modelType}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="font-light">
                     <Badge variant="outline">
-                      {model.strategy}
+                      {strategyDisplayNames[model.strategy] || model.strategy}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="font-light">
                     <div className="flex space-x-2">
                       <Button variant="ghost" size="icon">
                         <Eye className="w-4 h-4" />

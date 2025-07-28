@@ -4,6 +4,11 @@
   "outputDirectory": "client/dist",
   "buildCommand": "npm --prefix client run build",
 
+  "functions": {
+    "api/**/*.ts": {
+      "includeFiles": "attached_assets/**"
+    }
+  },
   "routes": [
     { "handle": "filesystem" },
     { "src": "/.*", "dest": "/index.html" }

@@ -1,37 +1,39 @@
 import { ChartLine } from "lucide-react";
+import { Link } from "wouter";
 
-interface HeaderNavigationProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}
+import { useLocation } from "wouter";
+
+interface HeaderNavigationProps {}
 
 const NavLink = ({
-  active,
-  onClick,
+  href,
   children,
 }: {
-  active: boolean;
-  onClick: () => void;
+  href: string;
   children: React.ReactNode;
-}) => (
-  <button
-    onClick={onClick}
-    className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 ${
-      active
-        ? "bg-slate-100 text-slate-900"
-        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-    }`}
-  >
-    {children}
-  </button>
-);
+}) => {
+  const [location] = useLocation();
+  const active = location === href || (href === "/" && location === "/overall");
+  return (
+    <Link
+      href={href}
+      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 ${
+        active
+          ? "bg-slate-100 text-slate-900"
+          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+      }`}
+    >
+      {children}
+    </Link>
+  );
+};
 
 export function HeaderNavigation({
-  activeTab,
-  onTabChange,
+  activeTab = "overall",
+  onTabChange = () => {},
 }: HeaderNavigationProps) {
   return (
-    <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200/80 sticky top-0 z-50">
+    <header className="bg-white/95 backdrop-blur-sm border-b-2 border-red-500 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
@@ -40,7 +42,7 @@ export function HeaderNavigation({
                 <ChartLine className="text-white w-4 h-4" />
               </div>
               <h1 className="text-lg font-bold text-slate-900 tracking-tight">
-                AI Leaderboard
+              CFA ARENA
               </h1>
             </div>
           </div>
@@ -48,27 +50,33 @@ export function HeaderNavigation({
           <nav className="hidden md:flex items-center space-x-2 p-1 bg-slate-200/50 rounded-lg">
             <NavLink
               active={activeTab === "overview"}
-              onClick={() => onTabChange("overview")}
+              href="/dashboard"
             >
               Overview
             </NavLink>
             <NavLink
               active={activeTab === "mcq"}
-              onClick={() => onTabChange("mcq")}
+              href="/mcq"
             >
               MCQ
             </NavLink>
             <NavLink
               active={activeTab === "essay"}
-              onClick={() => onTabChange("essay")}
+              href="/essay"
             >
               Essay
             </NavLink>
             <NavLink
               active={activeTab === "compare"}
-              onClick={() => onTabChange("compare")}
+              href="/compare"
             >
               Compare
+            </NavLink>
+            <NavLink
+              active={activeTab === "overall"}
+              href="/"
+            >
+              Overall
             </NavLink>
           </nav>
         </div>

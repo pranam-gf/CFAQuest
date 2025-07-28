@@ -5,6 +5,7 @@ import { PerformanceCharts } from "@/components/performance-charts";
 import { EvaluationTabs } from "@/components/evaluation-tabs";
 import { ModelComparison } from "@/components/model-comparison";
 import Footer from '@/components/footer';
+import Overall from "@/pages/overall";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -30,6 +31,8 @@ export default function Dashboard() {
         return <EvaluationTabs activeTab="essay" onTabChange={() => {}} />;
       case "compare":
         return <ModelComparison />;
+      case "overall":
+        return <Overall />;
       default:
         return (
           <>

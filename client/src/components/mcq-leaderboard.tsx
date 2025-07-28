@@ -150,7 +150,7 @@ export function McqLeaderboard() {
                     </TooltipProvider>
                   </div>
                 </TableHead>
-                <TableHead className="font-medium">Actions</TableHead>
+                
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -196,16 +196,7 @@ export function McqLeaderboard() {
                       {strategyDisplayNames[model.strategy] || model.strategy}
                     </Badge>
                   </TableCell>
-                  <TableCell className="font-light">
-                    <div className="flex space-x-2">
-                      <Button variant="ghost" size="icon">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Scale className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+                  
                 </TableRow>
               ))}
             </TableBody>

@@ -21,13 +21,30 @@ export function ProviderLogo({ modelName, size = "md", showName = false }: Provi
     lg: "text-base"
   };
 
-  return (
-    <div className="flex items-center space-x-2">
+  const renderLogo = () => {
+    if (typeof provider.logo === 'string') {
+      return (
+        <div 
+          className={`${sizeClasses[size]} flex-shrink-0`}
+          style={{ color: provider.color }}
+          dangerouslySetInnerHTML={{ __html: provider.logo }}
+        />
+      );
+    }
+    
+    return (
       <div 
         className={`${sizeClasses[size]} flex-shrink-0`}
         style={{ color: provider.color }}
-        dangerouslySetInnerHTML={{ __html: provider.logo }}
-      />
+      >
+        {provider.logo}
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex items-center space-x-2">
+      {renderLogo()}
       {showName && (
         <span className={`${textSizeClasses[size]} font-medium text-slate-900`}>
           {provider.name}

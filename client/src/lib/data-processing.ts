@@ -100,3 +100,35 @@ export function searchData<T>(data: T[], searchTerm: string, searchKeys: (keyof 
     })
   );
 }
+
+export function calculateOverallScores(mcqData: McqEvaluation[], essayData: EssayEvaluation[]) {
+  const modelScores: { [key: string]: { mcqScore?: number; essayScore?: number } } = {};
+
+  mcqData.forEach(mcq => {
+    if (!modelScores[mcq.model]) {
+      modelScores[mcq.model] = {};
+    }
+    modelScores[mcq.model].mcqScore = mcq.accuracy;
+  });
+
+  essayData.forEach(essay => {
+    if (!modelScores[essay.model]) {
+      modelScores[essay.model] = {};
+    }
+    modelScores[essay.model].essayScore = essay.avgSelfGrade / 4; // Normalize essay score to be between 0 and 1
+  });
+
+  const overallScores: { model: string; overallScore: number }[] = [];
+
+  for (const model in modelScores) {
+    const scores = modelScores[model];
+    if (scores.mcqScore !== undefined && scores.essayScore !== undefined) {
+      overallScores.push({
+        model,
+        overallScore: (scores.mcqScore + scores.essayScore) / 2,
+      });
+    }
+  }
+
+  return overallScores;
+}

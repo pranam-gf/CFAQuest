@@ -10,8 +10,12 @@
       "dest": "/dist/index.js"
     },
     {
+      "src": "/assets/(.*)",
+      "dest": "/dist/public/assets/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/client/dist/$1"
+      "dest": "/dist/public/index.html"
     }
   ]
 }

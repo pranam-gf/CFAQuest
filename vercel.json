@@ -6,8 +6,11 @@
       "use": "@vercel/node"
     },
     {
-      "src": "client/vite.config.ts",
-      "use": "@vercel/vite"
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
   ],
   "rewrites": [

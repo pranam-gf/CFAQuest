@@ -6,14 +6,17 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/$1"
+      "destination": "/client/index.html"
     }
   ],
   "builds": [
     {
-      "src": "client",
+      "src": "client/package.json",
       "use": "@vercel/static-build",
-      "config": { "outputDirectory": "dist" }
+      "config": {
+        "distDir": "client/dist",
+        "buildCommand": "npm run build"
+      }
     },
     {
       "src": "server/index.ts",

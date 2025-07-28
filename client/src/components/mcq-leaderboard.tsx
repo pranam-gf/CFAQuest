@@ -10,6 +10,7 @@ import { Eye, Scale, Filter, ArrowUpDown } from "lucide-react";
 import { McqEvaluation } from "@/types/models";
 import { sortData, searchData, filterData } from "@/lib/data-processing";
 import { ProviderLogo } from "@/components/provider-logo";
+import { MedalIcon } from "@/components/medal-icon";
 
 export function McqLeaderboard() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,22 +40,6 @@ export function McqLeaderboard() {
   const searchedData = searchData(filteredData, searchTerm, ["model", "strategy"]);
   const sortedData = sortData(searchedData, sortKey, sortDirection);
 
-  const getModelInitial = (model: string) => {
-    return model.charAt(0).toUpperCase();
-  };
-
-  const getModelColor = (model: string) => {
-    const colors = [
-      "from-blue-500 to-purple-600",
-      "from-green-500 to-blue-600",
-      "from-purple-500 to-pink-600",
-      "from-orange-500 to-red-600",
-      "from-teal-500 to-green-600",
-    ];
-    const index = model.length % colors.length;
-    return colors[index];
-  };
-
   if (isLoading) {
     return (
       <Card>
@@ -72,7 +57,7 @@ export function McqLeaderboard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>MCQ Performance Leaderboard</CardTitle>
+        <CardTitle className="font-signifier">MCQ Performance Leaderboard</CardTitle>
         <div className="flex flex-col sm:flex-row gap-3">
           <Input
             placeholder="Search models..."
@@ -131,7 +116,8 @@ export function McqLeaderboard() {
                   </Button>
                 </TableHead>
                 <TableHead>Provider</TableHead>
-                <TableHead>Model Type</TableHead>
+                <TableHead className="w-36">Model Type</TableHead>
+                <TableHead>Strategy</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -139,24 +125,12 @@ export function McqLeaderboard() {
               {sortedData.map((model, index) => (
                 <TableRow key={model.id} className="hover:bg-slate-50">
                   <TableCell>
-                    <div className="flex items-center">
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-3 ${
-                        index === 0 ? "bg-yellow-100 text-yellow-800" : "bg-slate-100 text-slate-600"
-                      }`}>
-                        {index + 1}
-                      </span>
+                    <div className="flex items-center justify-center">
+                      <MedalIcon rank={index + 1} />
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center">
-                      <div className={`w-8 h-8 bg-gradient-to-br ${getModelColor(model.model)} rounded-lg flex items-center justify-center mr-3`}>
-                        <span className="text-white text-xs font-bold">{getModelInitial(model.model)}</span>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-slate-900">{model.model}</div>
-                        <div className="text-sm text-slate-500">{model.strategy}</div>
-                      </div>
-                    </div>
+                    <div className="text-sm font-medium text-slate-900">{model.model}</div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center">
@@ -183,6 +157,11 @@ export function McqLeaderboard() {
                   <TableCell>
                     <Badge variant={model.modelType === "Reasoning" ? "default" : "secondary"}>
                       {model.modelType}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {model.strategy}
                     </Badge>
                   </TableCell>
                   <TableCell>

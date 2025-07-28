@@ -10,6 +10,7 @@ import { ArrowUpDown } from "lucide-react";
 import { EssayEvaluation } from "@/types/models";
 import { sortData, searchData, filterData } from "@/lib/data-processing";
 import { ProviderLogo } from "@/components/provider-logo";
+import { MedalIcon } from "@/components/medal-icon";
 
 export function EssayLeaderboard() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,22 +38,6 @@ export function EssayLeaderboard() {
   const searchedData = searchData(filteredData, searchTerm, ["model", "strategyShort"]);
   const sortedData = sortData(searchedData, sortKey, sortDirection);
 
-  const getModelInitial = (model: string) => {
-    return model.charAt(0).toUpperCase();
-  };
-
-  const getModelColor = (model: string) => {
-    const colors = [
-      "from-blue-500 to-purple-600",
-      "from-green-500 to-blue-600",
-      "from-purple-500 to-pink-600",
-      "from-orange-500 to-red-600",
-      "from-teal-500 to-green-600",
-    ];
-    const index = model.length % colors.length;
-    return colors[index];
-  };
-
   const getStrategyBadgeVariant = (strategy: string) => {
     if (strategy.includes("Self-Consistency")) return "default";
     if (strategy.includes("Self-Discover")) return "secondary";
@@ -76,7 +61,7 @@ export function EssayLeaderboard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Essay Evaluation Leaderboard</CardTitle>
+        <CardTitle className="font-signifier">Essay Evaluation Leaderboard</CardTitle>
         <div className="flex flex-col sm:flex-row gap-3">
           <Select value={strategyFilter} onValueChange={setStrategyFilter}>
             <SelectTrigger className="w-48">
@@ -130,6 +115,7 @@ export function EssayLeaderboard() {
                   </Button>
                 </TableHead>
                 <TableHead>Provider</TableHead>
+                <TableHead className="w-36">Model Type</TableHead>
                 <TableHead>Strategy</TableHead>
               </TableRow>
             </TableHeader>
@@ -137,22 +123,12 @@ export function EssayLeaderboard() {
               {sortedData.map((model, index) => (
                 <TableRow key={model.id} className="hover:bg-slate-50">
                   <TableCell>
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                      index === 0 ? "bg-yellow-100 text-yellow-800" : "bg-slate-100 text-slate-600"
-                    }`}>
-                      {index + 1}
-                    </span>
+                    <div className="flex items-center justify-center">
+                      <MedalIcon rank={index + 1} />
+                    </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center">
-                      <div className={`w-8 h-8 bg-gradient-to-br ${getModelColor(model.model)} rounded-lg flex items-center justify-center mr-3`}>
-                        <span className="text-white text-xs font-bold">{getModelInitial(model.model)}</span>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-slate-900">{model.model}</div>
-                        <div className="text-sm text-slate-500">{model.strategyShort}</div>
-                      </div>
-                    </div>
+                    <div className="text-sm font-medium text-slate-900">{model.model}</div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center">
@@ -178,6 +154,11 @@ export function EssayLeaderboard() {
                   </TableCell>
                   <TableCell>
                     <ProviderLogo modelName={model.model} showName />
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={model.modelType === "Reasoning" ? "default" : "secondary"}>
+                      {model.modelType || "Non-Reasoning"}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant={getStrategyBadgeVariant(model.strategyShort)}>

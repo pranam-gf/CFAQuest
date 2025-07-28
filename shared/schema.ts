@@ -31,6 +31,7 @@ export const essayEvaluations = pgTable("essay_evaluations", {
   avgLatencyMs: real("avg_latency_ms").notNull(),
   cosinePerDollar: real("cosine_per_dollar").notNull(),
   sampleCount: integer("sample_count").notNull(),
+  modelType: text("model_type").notNull().default("Non-Reasoning"),
 });
 
 export const insertMcqEvaluationSchema = createInsertSchema(mcqEvaluations).omit({

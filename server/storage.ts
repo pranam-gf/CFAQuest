@@ -84,6 +84,7 @@ export class MemStorage implements IStorage {
             avgLatencyMs: parseFloat(r.avg_latency_ms) || 0,
             cosinePerDollar: parseFloat(r.cosine_per_dollar) || 0,
             sampleCount: parseInt(r.sample_count) || 0,
+            modelType: this.determineModelType(r.model),
           };
           this.essayEvaluations.set(id, essayEvaluation);
         }
@@ -93,6 +94,12 @@ export class MemStorage implements IStorage {
     } catch (error) {
       console.error("Error loading CSV data:", error);
     }
+  }
+
+  private determineModelType(modelName: string): string {
+    const reasoning_models = ['deepseek-r1', 'o1', 'o3', 'qwq', 'grok'];
+    const model = modelName.toLowerCase();
+    return reasoning_models.some(rm => model.includes(rm)) ? "Reasoning" : "Non-Reasoning";
   }
 }
 

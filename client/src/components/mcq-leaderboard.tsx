@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Eye, Scale, Filter, ArrowUpDown } from "lucide-react";
 import { McqEvaluation } from "@/types/models";
 import { sortData, searchData, filterData } from "@/lib/data-processing";
+import { ProviderLogo } from "@/components/provider-logo";
 
 export function McqLeaderboard() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -129,6 +130,7 @@ export function McqLeaderboard() {
                     Total Cost ($) <ArrowUpDown className="ml-1 w-3 h-3" />
                   </Button>
                 </TableHead>
+                <TableHead>Provider</TableHead>
                 <TableHead>Model Type</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -174,6 +176,9 @@ export function McqLeaderboard() {
                   </TableCell>
                   <TableCell className="text-sm text-slate-900">
                     ${model.totalCost.toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    <ProviderLogo modelName={model.model} showName />
                   </TableCell>
                   <TableCell>
                     <Badge variant={model.modelType === "Reasoning" ? "default" : "secondary"}>

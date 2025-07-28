@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowUpDown } from "lucide-react";
 import { EssayEvaluation } from "@/types/models";
 import { sortData, searchData, filterData } from "@/lib/data-processing";
+import { ProviderLogo } from "@/components/provider-logo";
 
 export function EssayLeaderboard() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -128,6 +129,7 @@ export function EssayLeaderboard() {
                     Cost Efficiency <ArrowUpDown className="ml-1 w-3 h-3" />
                   </Button>
                 </TableHead>
+                <TableHead>Provider</TableHead>
                 <TableHead>Strategy</TableHead>
               </TableRow>
             </TableHeader>
@@ -173,6 +175,9 @@ export function EssayLeaderboard() {
                   </TableCell>
                   <TableCell className="text-sm text-success font-medium">
                     {model.cosinePerDollar.toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    <ProviderLogo modelName={model.model} showName />
                   </TableCell>
                   <TableCell>
                     <Badge variant={getStrategyBadgeVariant(model.strategyShort)}>

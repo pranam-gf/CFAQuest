@@ -3,16 +3,32 @@ import { config } from "dotenv";
 import { registerRoutes } from "./routes";
 import { DatabaseStorage } from "./database-storage";
 
-// Load environment variables from the root directory
-config({ path: "../.env" });
+// Load environment variables - only for local development
+// In Vercel, environment variables are automatically available
+if (process.env.NODE_ENV !== 'production') {
+  config({ path: "../.env" });
+}
 
 // Setup function for initializing the app
 const setupApp = async (): Promise<express.Application> => {
   const app = express();
   
+  console.log('Setting up app...');
+  console.log('Environment check:', {
+    NODE_ENV: process.env.NODE_ENV,
+    DATABASE_URL: process.env.DATABASE_URL ? 'Set' : 'Not set'
+  });
+  
   // Load data from database
-  const storage = DatabaseStorage.getInstance();
-  await storage.loadData();
+  try {
+    console.log('Initializing database storage...');
+    const storage = DatabaseStorage.getInstance();
+    await storage.loadData();
+    console.log('Database storage initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize database storage:', error);
+    throw error;
+  }
   
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));

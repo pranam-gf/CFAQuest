@@ -26,6 +26,7 @@ export interface EssayEvaluation {
   avgLatencyMs: number;
   cosinePerDollar: number;
   sampleCount: number;
+  modelType: string;
 }
 
 export interface Statistics {

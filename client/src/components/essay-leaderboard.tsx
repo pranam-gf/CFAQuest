@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Check, X } from "lucide-react";
 import { EssayEvaluation } from "@/types/models";
 import { sortData, searchData, filterData } from "@/lib/data-processing";
 import { ProviderLogo } from "@/components/provider-logo";
@@ -131,7 +131,7 @@ export function EssayLeaderboard() {
                   </Button>
                 </TableHead>
                 <TableHead className="font-medium">Provider</TableHead>
-                <TableHead className="w-36 font-medium">Model Type</TableHead>
+                <TableHead className="w-36 font-medium text-center">Reasoning</TableHead>
                 <TableHead className="font-medium">
                   <div className="flex items-center">
                     Strategy
@@ -188,9 +188,13 @@ export function EssayLeaderboard() {
                     <ProviderLogo modelName={model.model} showName />
                   </TableCell>
                   <TableCell className="font-light">
-                    <Badge variant={model.modelType === "Reasoning" ? "default" : "secondary"}>
-                      {model.modelType || "Non-Reasoning"}
-                    </Badge>
+                    <div className="flex items-center justify-center">
+                      {model.modelType === "Reasoning" ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <X className="w-5 h-5 text-red-500" />
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="font-light">
                     <Badge variant={getStrategyBadgeVariant(model.strategyShort)}>

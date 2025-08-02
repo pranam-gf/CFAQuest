@@ -66,18 +66,6 @@ const MetaLogo: React.FC<LogoProps> = (props) => (
   </svg>
 );
 
-const AWSLogo: React.FC<LogoProps> = (props) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-    <path d="M6.763 10.75l.694 1.4.694-1.4.694 1.4L9.539 10h.694l-1.388 2.8L7.457 10h-.694zm8.474 0l.694 1.4.694-1.4.694 1.4L16.013 10h.694l-1.388 2.8L13.931 10h-.694zM24 22.525l-6-2.475-6 2.475V24l6-2.475L24 24v-1.475z"/>
-  </svg>
-);
-
-const TogetherAILogo: React.FC<LogoProps> = (props) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-    <path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
-  </svg>
-);
 
 const UnknownLogo: React.FC<LogoProps> = (props) => (
   <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -135,7 +123,7 @@ export const getProviderInfo = (model: string): { name: string; color: string; l
     };
   }
   
-  if (model.includes('groq') || (model.includes('llama') && model.includes('groq'))) {
+  if (model.includes('groq') ||model.includes('deepseek')|| (model.includes('llama') && model.includes('groq'))) {
     return {
       name: 'Groq',
       color: '#FFA500',
@@ -155,20 +143,8 @@ export const getProviderInfo = (model: string): { name: string; color: string; l
     return { name: 'Writer', color: '#00D4AA', logo: WriterLogo };
   }
 
-  if (model.includes('qwen') || model.includes('alibaba')) {
-    return { name: 'Alibaba', color: '#FF6A00', logo: AlibabaLogo };
-  }
-
   if (model.includes('llama') && !model.includes('groq')) {
     return { name: 'Meta', color: '#1877F2', logo: MetaLogo };
-  }
-
-  if (model.includes('nova')) {
-    return { name: 'AWS', color: '#FF9900', logo: AWSLogo };
-  }
-  
-  if (model.includes('together')) {
-    return { name: 'Together AI', color: '#00B3A6', logo: TogetherAILogo };
   }
 
   return { name: 'Unknown', color: '#888888', logo: UnknownLogo };

@@ -43,11 +43,11 @@ export function HeaderNavigation() {
           </div>
 
           <nav className="hidden md:flex items-center space-x-2 p-1 bg-slate-200/50 rounded-lg">
-            <NavLink href="/dashboard">Overview</NavLink>
+            <NavLink href="/">Overall</NavLink>
             <NavLink href="/mcq">MCQ</NavLink>
             <NavLink href="/essay">Essay</NavLink>
             <NavLink href="/compare">Compare</NavLink>
-            <NavLink href="/">Overall</NavLink>
+            <NavLink href="/dashboard">Overview</NavLink>
           </nav>
         </div>
       </div>

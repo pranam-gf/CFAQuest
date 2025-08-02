@@ -3,11 +3,6 @@
   "outputDirectory": "client/dist",
   "buildCommand": "npm install && npm run build --workspace=client",
   "installCommand": "npm install",
-  "functions": {
-    "api/index.ts": {
-      "runtime": "@vercel/node@20.x"
-    }
-  },
   "routes": [
     {
       "src": "/api/(.*)",

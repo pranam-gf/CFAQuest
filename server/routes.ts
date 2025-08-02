@@ -1,10 +1,18 @@
 import type { Express } from "express";
-import { createServer, type Server } from "http";
 import { DatabaseStorage } from "./database-storage";
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<void> {
   // Get the database storage instance (data already loaded in setupApp)
   const storage = DatabaseStorage.getInstance();
+
+  // Health check endpoint
+  app.get("/api/health", (req, res) => {
+    res.json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
 
   // Get MCQ evaluations
   app.get("/api/mcq-evaluations", (req, res) => {
@@ -64,6 +72,5 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
+  // No need to create HTTP server for Vercel serverless functions
 }

@@ -1,5 +1,5 @@
 import postgres from "postgres";
-import { type McqEvaluation, type EssayEvaluation } from "@shared/schema";
+import { type McqEvaluation, type EssayEvaluation } from "../shared/schema";
 
 let client: postgres.Sql | null = null;
 
@@ -7,10 +7,22 @@ function getDatabase() {
   if (!client) {
     const databaseUrl = process.env.DATABASE_URL;
     if (!databaseUrl) {
+      console.error("DATABASE_URL environment variable is missing");
       throw new Error("DATABASE_URL environment variable is required");
     }
     
-    client = postgres(databaseUrl);
+    console.log("Initializing database connection...");
+    try {
+      client = postgres(databaseUrl, {
+        max: 1, // Limit connections for serverless
+        idle_timeout: 20,
+        connect_timeout: 10,
+      });
+      console.log("Database client created successfully");
+    } catch (error) {
+      console.error("Failed to create database client:", error);
+      throw error;
+    }
   }
   return client;
 }
@@ -38,7 +50,13 @@ export class DatabaseStorage {
       const db = getDatabase();
       
       console.log("Loading MCQ evaluations from database...");
-      const mcqResults = await db`SELECT * FROM mcq_evaluations`;
+      const mcqResults = await Promise.race([
+        db`SELECT * FROM mcq_evaluations`,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database query timeout')), 10000)
+        )
+      ]) as any[];
+      
       this.mcqData.clear();
       for (const row of mcqResults) {
         // Transform snake_case to camelCase
@@ -63,7 +81,13 @@ export class DatabaseStorage {
       console.log(`Loaded ${mcqResults.length} MCQ evaluations`);
 
       console.log("Loading essay evaluations from database...");
-      const essayResults = await db`SELECT * FROM essay_evaluations`;
+      const essayResults = await Promise.race([
+        db`SELECT * FROM essay_evaluations`,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database query timeout')), 10000)
+        )
+      ]) as any[];
+      
       this.essayData.clear();
       for (const row of essayResults) {
         // Transform snake_case to camelCase
@@ -90,7 +114,10 @@ export class DatabaseStorage {
       console.log("✅ All data loaded successfully from database");
     } catch (error) {
       console.error("❌ Failed to load data from database:", error);
-      throw error;
+      // Don't throw the error, just log it and continue with empty data
+      // This prevents the function from crashing if the database is temporarily unavailable
+      this.loaded = true; // Mark as loaded to prevent retries
+      console.log("⚠️ Continuing with empty data due to database error");
     }
   }
 

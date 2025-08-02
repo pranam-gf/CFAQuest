@@ -80,7 +80,8 @@ const setupApp = async (): Promise<express.Application> => {
 export { setupApp };
 
 // For local development, start the server
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Only run this if we're not in a Vercel environment and this is the main module
+if (process.env.VERCEL !== '1' && import.meta.url === `file://${process.argv[1]}`) {
   setupApp().then((app) => {
     const port = process.env.PORT || 3000;
     app.listen(port, () => {

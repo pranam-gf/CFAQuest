@@ -52,5 +52,21 @@ const setupApp = async () => {
   return app;
 };
 
-// Export the promise that resolves to the app
-export default setupApp();
+// Start the server
+const startServer = async () => {
+  const app = await setupApp();
+  const port = process.env.PORT || 3000;
+  
+  app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+  });
+};
+
+// Export the app for Vercel
+const appPromise = setupApp();
+export default appPromise;
+
+// Only start the server if this file is run directly (not imported)
+if (import.meta.url === `file://${process.argv[1]}`) {
+  startServer().catch(console.error);
+}

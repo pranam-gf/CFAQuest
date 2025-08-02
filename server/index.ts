@@ -36,7 +36,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Wrap the setup in an async function to handle async route registration
+// Setup function for initializing the app
 const setupApp = async () => {
   await registerRoutes(app);
 
@@ -45,28 +45,21 @@ const setupApp = async () => {
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    // It's often better to log the error on the server rather than re-throwing it in a serverless context
     console.error(err);
   });
 
   return app;
 };
 
-// Start the server
-const startServer = async () => {
-  const app = await setupApp();
-  const port = process.env.PORT || 3000;
-  
-  app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-  });
-};
+// For Vercel, export the setup function
+export { setupApp };
 
-// Export the app for Vercel
-const appPromise = setupApp();
-export default appPromise;
-
-// Only start the server if this file is run directly (not imported)
+// For local development, start the server
 if (import.meta.url === `file://${process.argv[1]}`) {
-  startServer().catch(console.error);
+  setupApp().then((app) => {
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+    });
+  }).catch(console.error);
 }

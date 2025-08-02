@@ -2,11 +2,13 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "outputDirectory": "client/dist",
-  "buildCommand": "npm --prefix client run build",
+  "buildCommand": "npm install && npm --prefix client run build",
+  "installCommand": "npm install",
 
   "functions": {
     "api/**/*.ts": {
-      "includeFiles": "attached_assets/**"
+      "includeFiles": "attached_assets/**",
+      "runtime": "nodejs20.x"
     }
   },
   "routes": [

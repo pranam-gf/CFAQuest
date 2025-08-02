@@ -3,6 +3,11 @@
   "outputDirectory": "client/dist",
   "buildCommand": "npm install && npm run build --workspace=client",
   "installCommand": "npm install",
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "server/**"
+    }
+  },
   "routes": [
     {
       "src": "/api/(.*)",

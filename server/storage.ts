@@ -13,6 +13,7 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private mcqEvaluations: Map<string, McqEvaluation>;
   private essayEvaluations: Map<string, EssayEvaluation>;
+  private dataLoaded: boolean = false;
 
   constructor() {
     this.mcqEvaluations = new Map();
@@ -28,9 +29,22 @@ export class MemStorage implements IStorage {
   }
 
   async loadDataFromCsv(): Promise<void> {
+    // Prevent duplicate loading
+    if (this.dataLoaded) {
+      return;
+    }
+
     try {
+      // Determine the correct base path for CSV files
+      // In Vercel, files are in the function's directory structure
+      // In local development, we need to go up one level from server
+      const isVercel = process.env.VERCEL || process.env.VERCEL_ENV;
+      const basePath = isVercel 
+        ? path.resolve(process.cwd(), "attached_assets")
+        : path.resolve(process.cwd(), "..", "attached_assets");
+
       // Load MCQ data
-      const mcqCsvPath = path.resolve(process.cwd(), "attached_assets", "all_runs_summary_metrics_1753717485485.csv");
+      const mcqCsvPath = path.resolve(basePath, "all_runs_summary_metrics_1753717485485.csv");
       const mcqCsvContent = fs.readFileSync(mcqCsvPath, "utf-8");
       const mcqRecords = parse(mcqCsvContent, {
         columns: true,
@@ -61,7 +75,7 @@ export class MemStorage implements IStorage {
       }
 
       // Load Essay data
-      const essayCsvPath = path.resolve(process.cwd(), "attached_assets", "model_strategy_summary_metrics_1753717485485.csv");
+      const essayCsvPath = path.resolve(basePath, "model_strategy_summary_metrics_1753717485485.csv");
       const essayCsvContent = fs.readFileSync(essayCsvPath, "utf-8");
       const essayRecords = parse(essayCsvContent, {
         columns: true,
@@ -91,6 +105,7 @@ export class MemStorage implements IStorage {
       }
 
       console.log(`Loaded ${this.mcqEvaluations.size} MCQ evaluations and ${this.essayEvaluations.size} essay evaluations`);
+      this.dataLoaded = true;
     } catch (error) {
       console.error("Error loading CSV data:", error);
     }

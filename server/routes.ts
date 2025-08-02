@@ -1,15 +1,15 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { DatabaseStorage } from "./database-storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Load CSV data on startup
-  await storage.loadDataFromCsv();
+  // Get the database storage instance (data already loaded in setupApp)
+  const storage = DatabaseStorage.getInstance();
 
   // Get MCQ evaluations
-  app.get("/api/mcq-evaluations", async (req, res) => {
+  app.get("/api/mcq-evaluations", (req, res) => {
     try {
-      const evaluations = await storage.getMcqEvaluations();
+      const evaluations = storage.getMcqEvaluations();
       res.json(evaluations);
     } catch (error) {
       console.error("Error fetching MCQ evaluations:", error);
@@ -18,9 +18,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get Essay evaluations
-  app.get("/api/essay-evaluations", async (req, res) => {
+  app.get("/api/essay-evaluations", (req, res) => {
     try {
-      const evaluations = await storage.getEssayEvaluations();
+      const evaluations = storage.getEssayEvaluations();
       res.json(evaluations);
     } catch (error) {
       console.error("Error fetching essay evaluations:", error);
@@ -29,10 +29,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get aggregated statistics
-  app.get("/api/statistics", async (req, res) => {
+  app.get("/api/statistics", (req, res) => {
     try {
-      const mcqEvaluations = await storage.getMcqEvaluations();
-      const essayEvaluations = await storage.getEssayEvaluations();
+      const mcqEvaluations = storage.getMcqEvaluations();
+      const essayEvaluations = storage.getEssayEvaluations();
 
       const totalModels = new Set([
         ...mcqEvaluations.map(e => e.model),

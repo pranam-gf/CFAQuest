@@ -8,17 +8,12 @@
     "start": "NODE_ENV=production node dist/index.js"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.4",
-    "connect-pg-simple": "^10.0.0",
+    "@supabase/supabase-js": "^2.39.0",
     "csv-parse": "^6.1.0",
-    "drizzle-orm": "^0.39.1",
-    "drizzle-zod": "^0.7.0",
+    "dotenv": "^16.6.1",
     "express": "^4.21.2",
-    "express-session": "^1.18.1",
-    "passport": "^0.7.0",
-    "passport-local": "^1.0.0",
+    "postgres": "^3.4.7",
     "ws": "^8.18.0",
-    "zod": "^3.24.2",
-    "zod-validation-error": "^3.4.0"
+    "zod": "^3.24.2"
   }
 }

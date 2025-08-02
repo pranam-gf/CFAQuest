@@ -1,12 +1,23 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { config } from "dotenv";
 import { registerRoutes } from "./routes";
+import { DatabaseStorage } from "./database-storage";
 
+// Load environment variables from the root directory
+config({ path: "../.env" });
 
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Setup function for initializing the app
+const setupApp = async (): Promise<express.Application> => {
+  const app = express();
+  
+  // Load data from database
+  const storage = DatabaseStorage.getInstance();
+  await storage.loadData();
+  
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
 
-app.use((req, res, next) => {
+  app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
@@ -36,8 +47,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Setup function for initializing the app
-const setupApp = async () => {
   await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

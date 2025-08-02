@@ -1,18 +1,24 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "outputDirectory": "client/dist",
-  "buildCommand": "npm install && npm --prefix client run build && npm --prefix server install",
+  "buildCommand": "npm install && npm run build --workspace=client",
   "installCommand": "npm install",
-
   "functions": {
-    "api/**/*.ts": {
-      "runtime": "nodejs18.x"
+    "api/index.ts": {
+      "runtime": "@vercel/node@3.0.7"
     }
   },
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api/index" },
-    { "handle": "filesystem" },
-    { "src": "/.*", "dest": "/index.html" }
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }

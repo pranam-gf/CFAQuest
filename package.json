@@ -17,9 +17,7 @@
     "dev:server": "npm run dev --workspace=server",
     "build": "npm run build --workspace=client && npm run build --workspace=server",
     "start": "NODE_ENV=production node server/dist/index.js",
-    "check": "tsc --noEmit",
-    "db:setup": "tsx scripts/setup-database.ts",
-    "db:migrate": "tsx scripts/migrate-to-supabase.ts"
+    "check": "tsc --noEmit"
   },
   "devDependencies": {
     "@replit/vite-plugin-cartographer": "^0.2.7",
@@ -34,7 +32,6 @@
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
     "concurrently": "^9.2.0",
-
     "esbuild": "^0.25.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",
@@ -48,6 +45,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "postgres": "^3.4.7",
+    "react-icon-cloud": "^4.1.7",
     "ws": "^8.18.0",
     "zod": "^3.24.2"
   },

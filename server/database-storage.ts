@@ -74,6 +74,7 @@ export class DatabaseStorage {
           configIdUsed: row.config_id_used,
           sourceJson: row.source_json,
           modelType: row.model_type,
+          contextLength: row.context_length ? Number(row.context_length) : undefined,
         };
         const key = `${mcq.model}-${mcq.strategy}`;
         this.mcqData.set(key, mcq);
@@ -104,6 +105,7 @@ export class DatabaseStorage {
           cosinePerDollar: Number(row.cosine_per_dollar),
           sampleCount: Number(row.sample_count),
           modelType: row.model_type || 'Non-Reasoning', // Default value if not present
+          contextLength: row.context_length ? Number(row.context_length) : undefined,
         };
         const key = `${essay.model}-${essay.strategyShort}`;
         this.essayData.set(key, essay);

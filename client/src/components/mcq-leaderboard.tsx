@@ -13,6 +13,7 @@ import { ProviderLogo } from "@/components/provider-logo";
 import { MedalIcon } from "@/components/medal-icon";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
+import { formatContextLength, getContextLengthColor } from "@/lib/context-length-utils";
 
 const strategyDisplayNames: Record<string, string> = {
   "Default (Single Pass)": "Zero-Shot",
@@ -62,7 +63,7 @@ export function McqLeaderboard() {
         <CardContent className="p-6">
           <div className="animate-pulse space-y-4">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-slate-200 rounded"></div>
+              <div key={i} className="h-16 bg-gray-200 dark:bg-gray-800 rounded"></div>
             ))}
           </div>
         </CardContent>
@@ -73,7 +74,7 @@ export function McqLeaderboard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-semibold">MCQ Performance Leaderboard</CardTitle>
+        <CardTitle className="font-semibold dark:text-white">MCQ Performance Leaderboard</CardTitle>
         <div className="flex flex-col sm:flex-row gap-3">
           <Input
             placeholder="Search models..."
@@ -110,36 +111,41 @@ export function McqLeaderboard() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="font-medium">Rank</TableHead>
-                <TableHead className="font-medium">
-                  <Button variant="ghost" onClick={() => handleSort("model")} className="h-auto p-0 font-medium">
+                <TableHead className="font-medium dark:text-white">Rank</TableHead>
+                <TableHead className="font-medium dark:text-white">
+                  <Button variant="ghost" onClick={() => handleSort("model")} className="h-auto p-0 font-medium dark:text-white">
                     Model <ArrowUpDown className="ml-1 w-3 h-3" />
                   </Button>
                 </TableHead>
-                <TableHead className="font-medium">
-                  <Button variant="ghost" onClick={() => handleSort("accuracy")} className="h-auto p-0 font-medium">
+                <TableHead className="font-medium dark:text-white">
+                  <Button variant="ghost" onClick={() => handleSort("accuracy")} className="h-auto p-0 font-medium dark:text-white">
                     Accuracy <ArrowUpDown className="ml-1 w-3 h-3" />
                   </Button>
                 </TableHead>
-                <TableHead className="font-medium">
-                  <Button variant="ghost" onClick={() => handleSort("avgTimePerQuestion")} className="h-auto p-0 font-medium">
+                <TableHead className="font-medium dark:text-white">
+                  <Button variant="ghost" onClick={() => handleSort("avgTimePerQuestion")} className="h-auto p-0 font-medium dark:text-white">
                     Avg Time (s) <ArrowUpDown className="ml-1 w-3 h-3" />
                   </Button>
                 </TableHead>
-                <TableHead className="font-medium">
-                  <Button variant="ghost" onClick={() => handleSort("totalCost")} className="h-auto p-0 font-medium">
+                <TableHead className="font-medium dark:text-white">
+                  <Button variant="ghost" onClick={() => handleSort("totalCost")} className="h-auto p-0 font-medium dark:text-white">
                     Total Cost ($) <ArrowUpDown className="ml-1 w-3 h-3" />
                   </Button>
                 </TableHead>
-                <TableHead className="font-medium">Provider</TableHead>
-                <TableHead className="w-36 font-medium text-center">Reasoning</TableHead>
-                <TableHead className="font-medium">
+                <TableHead className="font-medium dark:text-white">Provider</TableHead>
+                <TableHead className="w-36 font-medium text-center dark:text-white">Reasoning</TableHead>
+                <TableHead className="font-medium dark:text-white">
+                  <Button variant="ghost" onClick={() => handleSort("contextLength")} className="h-auto p-0 font-medium dark:text-white">
+                    Context <ArrowUpDown className="ml-1 w-3 h-3" />
+                  </Button>
+                </TableHead>
+                <TableHead className="font-medium dark:text-white">
                   <div className="flex items-center">
                     Strategy
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Info className="ml-2 w-4 h-4 text-slate-500 cursor-pointer" />
+                          <Info className="ml-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
                         </TooltipTrigger>
                         <TooltipContent>
                           {Object.entries(strategyDescriptions).map(([key, value]) => (
@@ -155,32 +161,32 @@ export function McqLeaderboard() {
             </TableHeader>
             <TableBody>
               {sortedData.map((model, index) => (
-                <TableRow key={model.id} className="hover:bg-slate-50">
+                <TableRow key={model.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                   <TableCell className="font-light">
                     <div className="flex items-center justify-center">
                       <MedalIcon rank={index + 1} />
                     </div>
                   </TableCell>
                   <TableCell className="font-light">
-                    <div className="text-sm font-medium text-slate-900">{model.model}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">{model.model}</div>
                   </TableCell>
                   <TableCell className="font-light">
                     <div className="flex items-center">
-                      <div className="flex-1 bg-slate-200 rounded-full h-2 mr-3">
+                      <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-3">
                         <div
                           className="bg-success h-2 rounded-full"
                           style={{ width: `${model.accuracy * 100}%` }}
                         />
                       </div>
-                      <span className="text-sm font-medium text-slate-900">
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
                         {(model.accuracy * 100).toFixed(2)}%
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-sm text-slate-900 font-light">
+                  <TableCell className="text-sm text-gray-900 dark:text-white font-light">
                     {model.avgTimePerQuestion.toFixed(2)}
                   </TableCell>
-                  <TableCell className="text-sm text-slate-900 font-light">
+                  <TableCell className="text-sm text-gray-900 dark:text-white font-light">
                     ${model.totalCost.toFixed(2)}
                   </TableCell>
                   <TableCell className="font-light">
@@ -194,6 +200,11 @@ export function McqLeaderboard() {
                         <X className="w-5 h-5 text-red-500" />
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell className="font-light">
+                    <span className={`text-sm font-medium ${getContextLengthColor(model.contextLength)}`}>
+                      {formatContextLength(model.contextLength)}
+                    </span>
                   </TableCell>
                   <TableCell className="font-light">
                     <Badge variant="outline">

@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Info } from "lucide-react";
 import { HeaderNavigation } from "@/components/header-navigation";
 import Footer from "@/components/footer";
+import { HeroSection } from "@/components/hero-section";
 
 const strategyDisplayNames: Record<string, string> = {
   "Default (Single Pass)": "Zero-Shot",
@@ -35,7 +36,6 @@ const strategyDescriptions: Record<string, string> = {
 };
 
 export default function Overall() {
-  const [activeTab, setActiveTab] = useState("overall");
   const [searchTerm, setSearchTerm] = useState("");
   const [modelTypeFilter, setModelTypeFilter] = useState("");
   const [strategyFilter, setStrategyFilter] = useState("");
@@ -69,12 +69,12 @@ export default function Overall() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <HeaderNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100/30 dark:from-black dark:via-gray-900 dark:to-gray-800">
+        <HeaderNavigation />
         <div className="container mx-auto py-8">
           <div className="animate-pulse space-y-4">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-slate-200 rounded"></div>
+              <div key={i} className="h-16 bg-gray-200 dark:bg-gray-800 rounded"></div>
             ))}
           </div>
         </div>
@@ -83,10 +83,14 @@ export default function Overall() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <HeaderNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-      <div className="container mx-auto py-8 flex-grow">
-      <h1 className="text-3xl font-bold mb-6">Overall Leaderboard</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100/30 dark:from-black dark:via-gray-900 dark:to-gray-800 flex flex-col">
+      <HeaderNavigation />
+      <div className="flex-grow">
+        <HeroSection />
+        
+        <div className="container mx-auto py-8">
+          <div className="mt-12">
+          <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Overall Leaderboard</h1>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <Input
@@ -135,17 +139,17 @@ export default function Overall() {
             </TableHeader>
             <TableBody>
               {top10Overall.map((model, index) => (
-                <TableRow key={model.model} className="hover:bg-slate-50">
+                <TableRow key={model.model} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                   <TableCell className="font-light">
                     <div className="flex items-center justify-center">
                       <MedalIcon rank={index + 1} />
                     </div>
                   </TableCell>
                   <TableCell className="font-light">
-                    <div className="text-sm font-medium text-slate-900">{model.model}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">{model.model}</div>
                   </TableCell>
                   <TableCell className="font-light">
-                    <div className="text-sm text-slate-900">
+                    <div className="text-sm text-gray-900 dark:text-white">
                       {model.overallScore.toFixed(2)}
                     </div>
                   </TableCell>
@@ -178,7 +182,7 @@ export default function Overall() {
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Info className="ml-2 w-4 h-4 text-slate-500 cursor-pointer" />
+                              <Info className="ml-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
                             </TooltipTrigger>
                             <TooltipContent>
                               {Object.entries(strategyDescriptions).map(([key, value]) => (
@@ -193,17 +197,17 @@ export default function Overall() {
                 </TableHeader>
                 <TableBody>
                   {top10Mcq.map((model, index) => (
-                    <TableRow key={model.id} className="hover:bg-slate-50">
+                    <TableRow key={model.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                       <TableCell className="font-light">
                         <div className="flex items-center justify-center">
                           <MedalIcon rank={index + 1} />
                         </div>
                       </TableCell>
                       <TableCell className="font-light">
-                        <div className="text-sm font-medium text-slate-900">{model.model}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">{model.model}</div>
                       </TableCell>
                       <TableCell className="font-light">
-                        <div className="text-sm text-slate-900">
+                        <div className="text-sm text-gray-900 dark:text-white">
                           {(model.accuracy * 100).toFixed(2)}%
                         </div>
                       </TableCell>
@@ -240,7 +244,7 @@ export default function Overall() {
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Info className="ml-2 w-4 h-4 text-slate-500 cursor-pointer" />
+                              <Info className="ml-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
                             </TooltipTrigger>
                             <TooltipContent>
                               {Object.entries(strategyDescriptions).map(([key, value]) => (
@@ -255,17 +259,17 @@ export default function Overall() {
                 </TableHeader>
                 <TableBody>
                   {top10Essay.map((model, index) => (
-                    <TableRow key={model.id} className="hover:bg-slate-50">
+                    <TableRow key={model.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                       <TableCell className="font-light">
                         <div className="flex items-center justify-center">
                           <MedalIcon rank={index + 1} />
                         </div>
                       </TableCell>
                       <TableCell className="font-light">
-                        <div className="text-sm font-medium text-slate-900">{model.model}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">{model.model}</div>
                       </TableCell>
                       <TableCell className="font-light">
-                        <div className="text-sm text-slate-900">
+                        <div className="text-sm text-gray-900 dark:text-white">
                           {model.avgSelfGrade.toFixed(2)}
                         </div>
                       </TableCell>
@@ -283,6 +287,8 @@ export default function Overall() {
               </Table>
             </CardContent>
           </Card>
+        </div>
+          </div>
         </div>
       </div>
       <Footer />

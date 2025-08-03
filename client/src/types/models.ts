@@ -12,6 +12,7 @@ export interface McqEvaluation {
   configIdUsed: string;
   sourceJson: string;
   modelType: string;
+  contextLength?: number;
 }
 
 export interface EssayEvaluation {
@@ -27,6 +28,7 @@ export interface EssayEvaluation {
   cosinePerDollar: number;
   sampleCount: number;
   modelType: string;
+  contextLength?: number;
 }
 
 export interface Statistics {

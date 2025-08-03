@@ -1,14 +1,13 @@
 import { EssayLeaderboard } from "@/components/essay-leaderboard";
 import { HeaderNavigation } from "@/components/header-navigation";
+import { HeroSection } from "@/components/hero-section";
 import Footer from "@/components/footer";
-import { useState } from "react";
 
 export default function EssayPage() {
-  const [activeTab, setActiveTab] = useState("essay");
-
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <HeaderNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100/30 dark:from-black dark:via-gray-900 dark:to-gray-800 flex flex-col">
+      <HeaderNavigation />
+      <HeroSection />
       <div className="container mx-auto py-8 flex-grow">
         <EssayLeaderboard />
       </div>

@@ -37,7 +37,7 @@ export function ProviderLogo({ modelName, size = "md", showName = false }: Provi
         React.cloneElement(Logo, logoProps)
       )}
       {showName && (
-        <span className={`${textSizeClasses[size]} font-medium text-slate-900`}>
+        <span className={`${textSizeClasses[size]} font-medium text-slate-900 dark:text-white`}>
           {provider.name}
         </span>
       )}

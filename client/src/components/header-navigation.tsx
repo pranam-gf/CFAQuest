@@ -1,7 +1,7 @@
 import { ChartLine, Menu, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import GitHubEssayButton from "@/components/ui/button-github-essay";
 import GitHubMcqButton from "@/components/ui/button-github-mcq";
@@ -48,6 +48,15 @@ export function HeaderNavigation() {
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
+
+  useEffect(() => {
+    const preloadRoutes = () => {
+      import("@/pages/dashboard");
+      import("@/pages/compare-page");
+    };
+    
+    preloadRoutes();
+  }, []);
 
   return (
     <header className="absolute top-0 left-0 right-0 z-50 bg-transparent">

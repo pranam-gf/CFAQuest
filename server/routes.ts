@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { DatabaseStorage } from "./database-storage";
+import { DatabaseStorage } from "./database-storage.js";
 
 export async function registerRoutes(app: Express): Promise<void> {
   // Get the database storage instance (data already loaded in setupApp)

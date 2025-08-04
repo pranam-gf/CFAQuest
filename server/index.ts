@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { config } from "dotenv";
-import { registerRoutes } from "./routes";
-import { DatabaseStorage } from "./database-storage";
+import { registerRoutes } from "./routes.js";
+import { DatabaseStorage } from "./database-storage.js";
 
 // Load environment variables - only for local development
 // In Vercel, environment variables are automatically available

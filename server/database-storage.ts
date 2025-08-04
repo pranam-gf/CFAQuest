@@ -1,5 +1,5 @@
 import postgres from "postgres";
-import { type McqEvaluation, type EssayEvaluation } from "../shared/schema";
+import { type McqEvaluation, type EssayEvaluation } from "../shared/schema.js";
 
 let client: postgres.Sql | null = null;
 

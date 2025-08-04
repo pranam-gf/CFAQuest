@@ -107,7 +107,8 @@ export function DropdownMenu({
         onClick={handleToggle}
         style={dynamicWidth && triggerWidth ? { width: `${triggerWidth}px` } : undefined}
         className={cn(
-          "flex h-10 w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-all duration-200 bg-white/10 dark:bg-white/5 border border-white/30 dark:border-white/20 backdrop-blur-md hover:bg-white/20 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm",
+          "flex h-10 items-center justify-between rounded-md px-3 py-2 text-sm transition-all duration-200 bg-white/10 dark:bg-white/5 border border-white/30 dark:border-white/20 backdrop-blur-md hover:bg-white/20 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm",
+          !dynamicWidth && "w-full",
           triggerClassName
         )}
         whileTap={{ scale: 0.98 }}
@@ -149,7 +150,7 @@ export function DropdownMenu({
               ease: "easeOut"
             }}
             className={cn(
-              "absolute z-50 mt-1 rounded-md p-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border border-white/60 dark:border-gray-700 shadow-xl",
+              "absolute z-50 mt-1 rounded-md p-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border border-white/60 dark:border-gray-700 shadow-xl",
               contentClassName
             )}
             style={{
@@ -158,16 +159,19 @@ export function DropdownMenu({
               minWidth: '100%'
             }}
           >
-            <div ref={contentRef} className="max-h-60 overflow-auto space-y-1">
+            <div className="space-y-1 max-h-60 overflow-auto">
+              <div className="mb-2 px-3 py-1">
+                <span className="text-sm font-medium text-slate-900 dark:text-white">
+                  {placeholder}
+                </span>
+              </div>
+              <div ref={contentRef} className="space-y-1">
               {options.map((option, index) => (
                 <motion.button
                   key={option.value}
                   type="button"
                   onClick={() => handleOptionClick(option.value)}
-                  className={cn(
-                    "relative flex w-full cursor-pointer select-none items-center justify-between rounded-md px-3 py-2 text-sm outline-none transition-all duration-200 text-slate-700 dark:text-gray-200 font-medium hover:bg-white/60 dark:hover:bg-white/10 focus:bg-white/60 dark:focus:bg-white/10",
-                    value === option.value && "bg-blue-500/20 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300"
-                  )}
+                  className="relative flex w-full cursor-pointer select-none items-center justify-between rounded-md px-3 py-2 text-sm outline-none transition-all duration-200 text-slate-700 dark:text-gray-200 font-medium hover:bg-white/60 dark:hover:bg-white/10 focus:bg-white/60 dark:focus:bg-white/10"
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ 
@@ -194,6 +198,7 @@ export function DropdownMenu({
                   )}
                 </motion.button>
               ))}
+              </div>
             </div>
           </motion.div>
         )}

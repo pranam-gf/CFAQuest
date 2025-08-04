@@ -45,7 +45,7 @@ export function OverviewMetrics() {
           <p className="text-xs text-gray-600 dark:text-gray-400">Active in evaluation</p>
         </div>
         <div>
-          <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+          <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
             {stats.totalModels}
           </div>
           <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -65,7 +65,7 @@ export function OverviewMetrics() {
           <p className="text-xs text-gray-600 dark:text-gray-400">Highest scoring model</p>
         </div>
         <div>
-          <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+          <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
             {(stats.bestMcqAccuracy * 100).toFixed(1)}%
           </div>
           <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
@@ -85,7 +85,7 @@ export function OverviewMetrics() {
           <p className="text-xs text-gray-600 dark:text-gray-400">Top essay evaluation</p>
         </div>
         <div>
-          <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+          <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
             {stats.bestEssayScore.toFixed(2)}
           </div>
           <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
@@ -105,7 +105,7 @@ export function OverviewMetrics() {
           <p className="text-xs text-gray-600 dark:text-gray-400">Best value performance</p>
         </div>
         <div>
-          <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+          <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
             {stats.mostCostEfficient.toFixed(0)}
           </div>
           <div className="text-sm text-gray-600 dark:text-gray-400 truncate">

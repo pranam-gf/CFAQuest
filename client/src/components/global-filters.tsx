@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
+import { MultiSelectDropdown } from "@/components/ui/multi-select-dropdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronDown, Building2, Database, Eye, Check } from "lucide-react";
@@ -33,13 +34,13 @@ const CONTEXT_LENGTH_OPTIONS = [
 ];
 
 interface GlobalFiltersProps {
-  // Provider filter
-  providerFilter: string;
-  onProviderFilterChange: (value: string) => void;
+  // Provider filter (now supports multi-select)
+  providerFilter: string | string[];
+  onProviderFilterChange: (value: string | string[]) => void;
   
-  // Context length filter
-  contextLengthFilter: string;
-  onContextLengthFilterChange: (value: string) => void;
+  // Context length filter (now supports multi-select)
+  contextLengthFilter: string | string[];
+  onContextLengthFilterChange: (value: string | string[]) => void;
   
   // Column visibility
   availableColumns: Array<{ key: string; label: string }>;
@@ -83,44 +84,42 @@ export function GlobalFilters({
   }));
 
   return (
-    <div className={cn("space-y-3", className)}>
-      {/* Single Line Filter Layout */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Provider Filter */}
-        <DropdownMenu
-          value={providerFilter}
-          onValueChange={onProviderFilterChange}
-          placeholder="Providers"
+    <div className={cn("flex flex-wrap lg:flex-nowrap items-center gap-3 flex-1", className)}>
+        {/* Provider Filter - Multi-select */}
+        <MultiSelectDropdown
+          value={Array.isArray(providerFilter) ? providerFilter : [providerFilter || 'all']}
+          onValueChange={(values) => onProviderFilterChange(values)}
+          placeholder="AI Providers"
           options={PROVIDER_OPTIONS}
-          icon={<Building2 className="h-4 w-4" />}
-          dynamicWidth
-          minWidth={140}
+          icon={<Building2 className="h-4 w-4 text-slate-600 dark:text-gray-300" />}
+          minWidth={160}
+          className="flex-1 min-w-[160px] max-w-[200px]"
         />
         
-        {/* Context Length Filter */}
-        <DropdownMenu
-          value={contextLengthFilter}
-          onValueChange={onContextLengthFilterChange}
-          placeholder="Context"
+        {/* Context Length Filter - Multi-select */}
+        <MultiSelectDropdown
+          value={Array.isArray(contextLengthFilter) ? contextLengthFilter : [contextLengthFilter || 'all']}
+          onValueChange={(values) => onContextLengthFilterChange(values)}
+          placeholder="Context Length"
           options={CONTEXT_LENGTH_OPTIONS}
-          icon={<Database className="h-4 w-4" />}
-          dynamicWidth
+          icon={<Database className="h-4 w-4 text-slate-600 dark:text-gray-300" />}
+          minWidth={160}
+          className="flex-1 min-w-[160px] max-w-[200px]"
         />
 
         {/* Additional Filters */}
         {additionalFilters}
 
         {/* Column Visibility Dropdown */}
-        <div className="relative">
+        <div className="relative flex-1 min-w-[160px] max-w-[200px]">
           <Button
             variant="outline"
-            size="sm"
+            className="h-10 w-full bg-white/10 dark:bg-white/5 border-white/30 dark:border-white/20 backdrop-blur-md hover:bg-white/20 dark:hover:bg-white/10 text-slate-700 dark:text-gray-200 shadow-sm"
             onClick={() => setShowColumnSelector(!showColumnSelector)}
-            className="bg-white/10 dark:bg-white/5 border-white/20 dark:border-white/10 backdrop-blur-md hover:bg-white/20 dark:hover:bg-white/10"
           >
-            <Eye className="h-4 w-4 mr-1" />
+            <Eye className="h-4 w-4 mr-1 text-slate-600 dark:text-gray-300" />
             Columns
-            <ChevronDown className={cn("h-4 w-4 ml-1 transition-transform", showColumnSelector && "rotate-180")} />
+            <ChevronDown className={cn("h-4 w-4 ml-1 transition-transform text-slate-600 dark:text-gray-300", showColumnSelector && "rotate-180")} />
           </Button>
 
           <AnimatePresence>
@@ -173,39 +172,43 @@ export function GlobalFilters({
             )}
           </AnimatePresence>
         </div>
-
-      </div>
     </div>
   );
 }
 
 // Utility functions for filtering
-export const filterByProvider = <T extends { model: string }>(data: T[], providerFilter: string): T[] => {
-  if (!providerFilter || providerFilter === "all") return data;
+export const filterByProvider = <T extends { model: string }>(data: T[], providerFilter: string | string[]): T[] => {
+  const filters = Array.isArray(providerFilter) ? providerFilter : [providerFilter];
+  
+  if (filters.includes("all") || filters.length === 0 || !providerFilter) return data;
   
   return data.filter(item => {
     const providerInfo = getProviderInfo(item.model);
-    return providerInfo.name === providerFilter;
+    return filters.includes(providerInfo.name);
   });
 };
 
-export const filterByContextLength = <T extends { contextLength?: number }>(data: T[], contextLengthFilter: string): T[] => {
-  if (!contextLengthFilter || contextLengthFilter === "all") return data;
+export const filterByContextLength = <T extends { contextLength?: number }>(data: T[], contextLengthFilter: string | string[]): T[] => {
+  const filters = Array.isArray(contextLengthFilter) ? contextLengthFilter : [contextLengthFilter];
+  
+  if (filters.includes("all") || filters.length === 0) return data;
   
   return data.filter(item => {
     const contextLength = item.contextLength || 0;
     
-    switch (contextLengthFilter) {
-      case "0-32k":
-        return contextLength <= 32000;
-      case "32k-100k":
-        return contextLength > 32000 && contextLength <= 100000;
-      case "100k-500k":
-        return contextLength > 100000 && contextLength <= 500000;
-      case "500k+":
-        return contextLength > 500000;
-      default:
-        return true;
-    }
+    return filters.some(filter => {
+      switch (filter) {
+        case "0-32k":
+          return contextLength <= 32000;
+        case "32k-100k":
+          return contextLength > 32000 && contextLength <= 100000;
+        case "100k-500k":
+          return contextLength > 100000 && contextLength <= 500000;
+        case "500k+":
+          return contextLength > 500000;
+        default:
+          return true;
+      }
+    });
   });
 };

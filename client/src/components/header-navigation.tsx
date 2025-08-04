@@ -25,9 +25,9 @@ const NavLink = ({ href, children }: NavLinkProps) => {
       <span className="relative z-10">{children}</span>
       {isActive && (
         <motion.div
-          className="absolute bottom-0 left-0 right-0 h-[2px] bg-emerald-400"
+          className="absolute bottom-0 left-0 right-0 h-[2px] bg-blue-500"
           style={{
-            boxShadow: "0px 0px 8px 0px #34d399",
+            boxShadow: "0px 0px 8px 0px #3b82f6",
           }}
           layoutId="underline"
           transition={{ type: 'spring', stiffness: 500, damping: 30 }}

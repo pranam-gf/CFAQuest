@@ -5,9 +5,10 @@ interface ProviderLogoProps {
   modelName: string;
   size?: "sm" | "md" | "lg";
   showName?: boolean;
+  className?: string;
 }
 
-export function ProviderLogo({ modelName, size = "md", showName = false }: ProviderLogoProps) {
+export function ProviderLogo({ modelName, size = "md", showName = false, className }: ProviderLogoProps) {
   const provider = getProviderInfo(modelName);
   
   const sizeClasses = {
@@ -25,7 +26,7 @@ export function ProviderLogo({ modelName, size = "md", showName = false }: Provi
   const Logo = provider.logo;
 
   const logoProps = {
-    className: `${sizeClasses[size]} flex-shrink-0`,
+    className: `${sizeClasses[size]} flex-shrink-0 ${className || ''}`,
     style: { color: provider.color },
   };
 

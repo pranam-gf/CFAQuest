@@ -68,16 +68,16 @@ function ModelSelectionDropdown({ selectedModels, onSelectModel, allModels }: Mo
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute z-50 mt-2 w-80 left-1/2 -translate-x-1/2 origin-top rounded-xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-gray-200 dark:border-gray-700 shadow-2xl"
+            className="absolute z-50 mt-2 w-96 left-0 right-0 mx-auto origin-top rounded-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border border-gray-200 dark:border-gray-700 shadow-2xl"
           >
             <div className="p-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-6 text-gray-500 dark:text-gray-400" />
                 <Input
                   placeholder="Search models..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-white/50 dark:bg-gray-800/50 border-0 rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500/50 placeholder:text-gray-300 dark:placeholder:text-gray-600"
+                  className="w-full bg-white/80 dark:bg-gray-800/50 border border-gray-300/50 dark:border-gray-600 rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500/50 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -224,7 +224,7 @@ function ModelCard({ modelId, mcqData, essayData, onRemove }: ModelCardProps) {
             <span className="text-sm text-gray-600 dark:text-gray-400">{providerInfo.name}</span>
           </div>
         </div>
-        <Button variant="ghost" size="icon" className="-mr-2 -mt-2 h-8 w-8 rounded-full" onClick={() => onRemove(modelId)}>
+        <Button variant="ghost" size="icon" className="-mr-2 -mt-2 h-8 w-8 rounded-full hover:bg-red-500 hover:text-white transition-colors" onClick={() => onRemove(modelId)}>
             <X className="h-4 w-4" />
         </Button>
       </div>
@@ -358,7 +358,10 @@ export default function ComparePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100/30 dark:from-black dark:via-gray-900 dark:to-gray-800 flex flex-col">
       <HeaderNavigation />
-      <main className="flex-grow p-4 pt-24">
+      <main className="flex-grow p-4 pt-24 relative">
+        <div className="absolute inset-0 bg-dot-pattern opacity-5 dark:opacity-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-blue-500/5 to-[#464348]/10 dark:via-blue-500/10 dark:to-[#464348]/20"></div>
+        <div className="relative z-10">
         <div className="container mx-auto py-8">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">Model Comparison</h1>
@@ -380,10 +383,10 @@ export default function ComparePage() {
                     onClick={handleClearAll}
                     variant="outline"
                     size="icon"
-                    className="rounded-full border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-700"
+                    className="rounded-full border-red-200 dark:border-red-800 text-red-600 dark:text-white-400 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors"
                     title="Clear all selected models"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-4 w-4 hover:text-white" />
                   </Button>
                 </motion.div>
               )}
@@ -409,6 +412,7 @@ export default function ComparePage() {
                 essayData={essayData} 
             />
           )}
+        </div>
         </div>
       </main>
       <Footer />

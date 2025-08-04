@@ -15,8 +15,7 @@ function getDatabase() {
     try {
       client = postgres(databaseUrl, {
         max: 1, // Limit connections for serverless
-        idle_timeout: 20,
-        connect_timeout: 10,
+        idle_timeout: 20
       });
       console.log("Database client created successfully");
     } catch (error) {

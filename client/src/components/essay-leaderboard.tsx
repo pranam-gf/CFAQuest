@@ -1,16 +1,16 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { GlobalFilters, filterByProvider, filterByContextLength } from "@/components/global-filters";
+import { CommonFilters } from "@/components/common-filters";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpDown, Check, X } from "lucide-react";
 import { EssayEvaluation } from "@/types/models";
 import { sortData, searchData, filterData } from "@/lib/data-processing";
-import { Search, Target, Cpu } from "lucide-react";
 import { ProviderLogo } from "@/components/provider-logo";
 import { MedalIcon } from "@/components/medal-icon";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -38,7 +38,7 @@ export function EssayLeaderboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [modelTypeFilter, setModelTypeFilter] = useState("");
   const [strategyFilter, setStrategyFilter] = useState("");
-  const [providerFilter, setProviderFilter] = useState("");
+  const [providerFilter, setProviderFilter] = useState<string[]>(["all"]);
   const [contextLengthFilter, setContextLengthFilter] = useState("");
   const [sortKey, setSortKey] = useState<keyof EssayEvaluation>("avgSelfGrade");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -69,8 +69,8 @@ export function EssayLeaderboard() {
   const searchedData = searchData(filteredData, searchTerm, ["model", "strategyShort"]);
   const sortedData = sortData(searchedData, sortKey, sortDirection);
 
-  // Available columns for the column selector
-  const availableColumns = [
+  // Available columns for the column selector - memoized to prevent re-renders
+  const availableColumns = useMemo(() => [
     { key: 'provider', label: 'Provider' },
     { key: 'model', label: 'Model' },
     { key: 'avgSelfGrade', label: 'Self Grade' },
@@ -80,9 +80,18 @@ export function EssayLeaderboard() {
     { key: 'reasoning', label: 'Reasoning' },
     { key: 'contextLength', label: 'Context' },
     { key: 'strategyShort', label: 'Strategy' },
-  ];
+  ], []);
 
-  const columns: ColumnDefinition<EssayEvaluation>[] = [
+  // Strategy options - memoized to prevent re-renders
+  const strategyOptions = useMemo(() => [
+    { value: "all", label: "All" },
+    { value: "Default", label: "Zero-Shot" },
+    { value: "Self-Consistency_N3", label: "SC-CoT N=3" },
+    { value: "Self-Consistency_N5", label: "SC-CoT N=5" },
+    { value: "Self-Discover", label: "Self-Discover" }
+  ], []);
+
+  const columns: ColumnDefinition<EssayEvaluation>[] = useMemo(() => [
     {
       key: 'provider',
       label: 'Provider',
@@ -157,7 +166,7 @@ export function EssayLeaderboard() {
         ])
       )
     }
-  ];
+  ], []);
 
   if (isLoading) {
     return (
@@ -175,66 +184,34 @@ export function EssayLeaderboard() {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="relative max-w-64">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 dark:text-slate-400 h-4 w-4" />
-          <Input
-            placeholder="Search models..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-white/10 dark:bg-white/5 border-white/30 dark:border-white/20 backdrop-blur-md shadow-sm"
-          />
-        </div>
-        <GlobalFilters
-          providerFilter={providerFilter}
-          onProviderFilterChange={setProviderFilter}
-          contextLengthFilter={contextLengthFilter}
-          onContextLengthFilterChange={setContextLengthFilter}
-          availableColumns={availableColumns}
+      <CommonFilters
+        searchTerm={searchTerm}
+        onSearchTermChange={setSearchTerm}
+        modelTypeFilter={modelTypeFilter}
+        onModelTypeFilterChange={setModelTypeFilter}
+        strategyFilter={strategyFilter}
+        onStrategyFilterChange={setStrategyFilter}
+        providerFilter={providerFilter}
+        onProviderFilterChange={setProviderFilter}
+        contextLengthFilter={contextLengthFilter}
+        onContextLengthFilterChange={setContextLengthFilter}
+        availableColumns={availableColumns}
+        visibleColumns={visibleColumns}
+        onColumnVisibilityChange={setVisibleColumns}
+        strategyOptions={strategyOptions}
+        isMultiSelectStrategy={false}
+      />
+      <div className="bg-white/10 dark:bg-white/5 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl p-6 overflow-visible">
+        <LeaderboardTable
+          data={sortedData}
+          columns={columns}
+          isLoading={isLoading}
+          onSort={handleSort}
+          sortKey={sortKey}
+          sortDirection={sortDirection}
           visibleColumns={visibleColumns}
-          onColumnVisibilityChange={setVisibleColumns}
-          additionalFilters={
-            <>
-              <DropdownMenu
-                value={modelTypeFilter}
-                onValueChange={setModelTypeFilter}
-                placeholder="Models"
-                icon={<Cpu className="h-4 w-4" />}
-                dynamicWidth
-                options={[
-                  { value: "all", label: "All" },
-                  { value: "Reasoning", label: "Reasoning" },
-                  { value: "Non-Reasoning", label: "Non-Reasoning" }
-                ]}
-              />
-              <DropdownMenu
-                value={strategyFilter}
-                onValueChange={setStrategyFilter}
-                placeholder="Strategy"
-                icon={<Target className="h-4 w-4" />}
-                dynamicWidth
-                minWidth={140}
-                options={[
-                  { value: "all", label: "All" },
-                  { value: "Default", label: "Zero-Shot" },
-                  { value: "Self-Consistency_N3", label: "SC-CoT N=3" },
-                  { value: "Self-Consistency_N5", label: "SC-CoT N=5" },
-                  { value: "Self-Discover", label: "Self-Discover" }
-                ]}
-              />
-            </>
-          }
         />
       </div>
-      <LeaderboardTable
-        data={sortedData}
-        columns={columns}
-        isLoading={isLoading}
-        onSort={handleSort}
-        sortKey={sortKey}
-        sortDirection={sortDirection}
-        visibleColumns={visibleColumns}
-      />
     </div>
   );
 }

@@ -259,7 +259,7 @@ export function LeaderboardTable<T extends Record<string, any>>({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto overflow-y-visible relative">
       <Table>
         <TableHeader>
           <TableRow>
@@ -283,17 +283,17 @@ export function LeaderboardTable<T extends Record<string, any>>({
               switch (position) {
                 case 0: // Gold
                   return {
-                    rowClass: "!border-l-4 !border-l-yellow-400/80",
+                    rowClass: "!border-l-4 !border-l-yellow-400/80 bg-yellow-50/50 dark:bg-yellow-900/20 hover:bg-yellow-100/70 dark:hover:bg-yellow-900/30",
                     stripColor: "bg-yellow-400"
                   };
                 case 1: // Silver
                   return {
-                    rowClass: "!border-l-4 !border-l-slate-400/80",
+                    rowClass: "!border-l-4 !border-l-slate-400/80 bg-slate-50/50 dark:bg-slate-700/20 hover:bg-slate-100/70 dark:hover:bg-slate-700/30",
                     stripColor: "bg-slate-400"
                   };
                 case 2: // Bronze
                   return {
-                    rowClass: "!border-l-4 !border-l-orange-500/80",
+                    rowClass: "!border-l-4 !border-l-orange-500/80 bg-orange-50/50 dark:bg-orange-900/20 hover:bg-orange-100/70 dark:hover:bg-orange-900/30",
                     stripColor: "bg-orange-500"
                   };
                 default:

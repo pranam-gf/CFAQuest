@@ -3,7 +3,7 @@ import { Linkedin, Twitter, Youtube } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-gray-900 text-white py-8 mt-8">
+    <footer className="bg-black text-white py-8 mt-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           <div>

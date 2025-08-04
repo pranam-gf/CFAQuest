@@ -43,3 +43,10 @@ export interface Statistics {
 
 export type ModelType = "Reasoning" | "Non-Reasoning" | "All";
 export type StrategyType = "Default" | "Self-Consistency" | "Self-Discover" | "All";
+
+export interface PricingInfo {
+  inputTokenPrice?: number; // Price per 1M input tokens
+  outputTokenPrice?: number; // Price per 1M output tokens
+  currency?: string; // e.g., "USD"
+  unit?: string; // e.g., "per 1M tokens"
+}

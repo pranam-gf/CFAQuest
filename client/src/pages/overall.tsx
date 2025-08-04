@@ -1,19 +1,20 @@
-import { useState } from "react";
+import { useState, createContext, useContext } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { McqEvaluation, EssayEvaluation } from "@/types/models";
-import { MedalIcon } from "@/components/medal-icon";
-import { ProviderLogo } from "@/components/provider-logo";
 import { calculateOverallScores, filterData, searchData } from "@/lib/data-processing";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import { DropdownMenu } from "@/components/ui/dropdown-menu";
+import { GlobalFilters, filterByProvider, filterByContextLength } from "@/components/global-filters";
+import { Check, X, Search, Cpu, Target } from "lucide-react";
+import { formatContextLength, getContextLengthColor } from "@/lib/context-length-utils";
+import { getDisplayName } from "@/lib/model-display-names";
 import { HeaderNavigation } from "@/components/header-navigation";
 import Footer from "@/components/footer";
 import { HeroSection } from "@/components/hero-section";
+import { McqLeaderboard } from "@/components/mcq-leaderboard";
+import { EssayLeaderboard } from "@/components/essay-leaderboard";
+import { LeaderboardTable, ColumnDefinition } from "@/components/leaderboard-table";
 
 const strategyDisplayNames: Record<string, string> = {
   "Default (Single Pass)": "Zero-Shot",
@@ -35,10 +36,24 @@ const strategyDescriptions: Record<string, string> = {
   "Self-Consistency_N5": "Self-Consistency with Chain-of-Thought, sampling 5 reasoning paths.",
 };
 
-export default function Overall() {
+type ViewType = 'overall' | 'mcq' | 'essay';
+
+const ViewContext = createContext<{
+  currentView: ViewType;
+  setCurrentView: (view: ViewType) => void;
+}>({ currentView: 'overall', setCurrentView: () => {} });
+
+export const useView = () => useContext(ViewContext);
+
+function OverallContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [modelTypeFilter, setModelTypeFilter] = useState("");
   const [strategyFilter, setStrategyFilter] = useState("");
+  const [providerFilter, setProviderFilter] = useState("");
+  const [contextLengthFilter, setContextLengthFilter] = useState("");
+  const [visibleColumns, setVisibleColumns] = useState<string[]>([
+    'provider', 'model', 'overallScore', 'mcqScore', 'essayScore', 'reasoning', 'context'
+  ]);
 
   const { data: mcqData = [], isLoading: isLoadingMcq } = useQuery<McqEvaluation[]>({
     queryKey: ["/api/mcq-evaluations"],
@@ -50,22 +65,152 @@ export default function Overall() {
 
   const isLoading = isLoadingMcq || isLoadingEssay;
 
-  const filteredMcqData = filterData(mcqData, {
+  let filteredMcqData = filterData(mcqData, {
     ...(modelTypeFilter && modelTypeFilter !== "all" && { modelType: modelTypeFilter }),
     ...(strategyFilter && strategyFilter !== "all" && { strategy: strategyFilter }),
   });
+  filteredMcqData = filterByProvider(filteredMcqData, providerFilter);
+  filteredMcqData = filterByContextLength(filteredMcqData, contextLengthFilter);
   const searchedMcqData = searchData(filteredMcqData, searchTerm, ["model", "strategy"]);
 
-  const filteredEssayData = filterData(essayData, {
+  let filteredEssayData = filterData(essayData, {
     ...(strategyFilter && strategyFilter !== "all" && { strategyShort: strategyFilter }),
   });
+  filteredEssayData = filterByProvider(filteredEssayData, providerFilter);
+  filteredEssayData = filterByContextLength(filteredEssayData, contextLengthFilter);
   const searchedEssayData = searchData(filteredEssayData, searchTerm, ["model", "strategyShort"]);
 
   const overallScores = calculateOverallScores(searchedMcqData, searchedEssayData);
+  const sortedOverallScores = [...overallScores].sort((a, b) => b.overallScore - a.overallScore);
 
-  const top10Mcq = [...searchedMcqData].sort((a, b) => b.accuracy - a.accuracy).slice(0, 10);
-  const top10Essay = [...searchedEssayData].sort((a, b) => b.avgSelfGrade - a.avgSelfGrade).slice(0, 10);
-  const top10Overall = [...overallScores].sort((a, b) => b.overallScore - a.overallScore).slice(0, 10);
+  // Available columns for the column selector
+  const availableColumns = [
+    { key: 'provider', label: 'Provider' },
+    { key: 'model', label: 'Model' },
+    { key: 'overallScore', label: 'Overall Score' },
+    { key: 'mcqScore', label: 'MCQ Score' },
+    { key: 'essayScore', label: 'Essay Score' },
+    { key: 'reasoning', label: 'Reasoning' },
+    { key: 'context', label: 'Context' },
+  ];
+
+  // Column definitions for different tables
+  const overallColumns: ColumnDefinition[] = [
+    {
+      key: 'provider',
+      label: 'Provider',
+      type: 'provider-tooltip',
+      getValue: (row: any) => row.model
+    },
+    {
+      key: 'model',
+      label: 'Model',
+      type: 'model'
+    },
+    {
+      key: 'overallScore',
+      label: 'Overall Score',
+      type: 'custom',
+      render: (value: any) => (
+        <div className="text-sm text-gray-900 dark:text-white font-medium">
+          {value.toFixed(2)}
+        </div>
+      )
+    },
+    {
+      key: 'mcqScore',
+      label: 'MCQ Score',
+      type: 'custom',
+      render: (value: any, row: any) => {
+        const mcqMatch = searchedMcqData.find(m => m.model === row.model);
+        if (!mcqMatch) {
+          return (
+            <div className="text-sm text-gray-900 dark:text-white">
+              N/A
+            </div>
+          );
+        }
+        const percentage = mcqMatch.accuracy * 100;
+        return (
+          <div className="flex items-center">
+            <div className="flex-1 bg-white/20 dark:bg-white/10 rounded-full h-2 mr-3">
+              <div
+                className="bg-emerald-500 h-2 rounded-full"
+                style={{ width: `${percentage}%` }}
+              />
+            </div>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
+              {Math.round(percentage)}%
+            </span>
+          </div>
+        );
+      }
+    },
+    {
+      key: 'essayScore',
+      label: 'Essay Score',
+      type: 'custom',
+      render: (value: any, row: any) => {
+        const essayMatch = searchedEssayData.find(m => m.model === row.model);
+        if (!essayMatch) {
+          return (
+            <div className="text-sm text-gray-900 dark:text-white">
+              N/A
+            </div>
+          );
+        }
+        const percentage = (essayMatch.avgSelfGrade / 4) * 100;
+        return (
+          <div className="flex items-center">
+            <div className="flex-1 bg-white/20 dark:bg-white/10 rounded-full h-2 mr-3">
+              <div
+                className="bg-emerald-500 h-2 rounded-full"
+                style={{ width: `${percentage}%` }}
+              />
+            </div>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
+              {essayMatch.avgSelfGrade}
+            </span>
+          </div>
+        );
+      }
+    },
+    {
+      key: 'reasoning',
+      label: 'Reasoning',
+      type: 'custom',
+      width: 'w-36',
+      className: 'text-center',
+      render: (value: any, row: any) => {
+        const mcqMatch = searchedMcqData.find(m => m.model === row.model);
+        const essayMatch = searchedEssayData.find(m => m.model === row.model);
+        return (
+          <div className="flex items-center justify-center">
+            {(mcqMatch?.modelType === "Reasoning" || essayMatch?.modelType === "Reasoning") ? (
+              <Check className="w-5 h-5 text-green-600" />
+            ) : (
+              <X className="w-5 h-5 text-red-500" />
+            )}
+          </div>
+        );
+      }
+    },
+    {
+      key: 'context',
+      label: 'Context',
+      type: 'custom',
+      render: (value: any, row: any) => {
+        const mcqMatch = searchedMcqData.find(m => m.model === row.model);
+        const essayMatch = searchedEssayData.find(m => m.model === row.model);
+        const contextLength = mcqMatch?.contextLength || essayMatch?.contextLength || 0;
+        return (
+          <span className={`text-sm font-medium ${getContextLengthColor(contextLength)}`}>
+            {formatContextLength(contextLength)}
+          </span>
+        );
+      }
+    }
+  ];
 
   if (isLoading) {
     return (
@@ -83,215 +228,117 @@ export default function Overall() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100/30 dark:from-black dark:via-gray-900 dark:to-gray-800 flex flex-col">
-      <HeaderNavigation />
-      <div className="flex-grow">
-        <HeroSection />
-        
-        <div className="container mx-auto py-8">
-          <div className="mt-12">
-          <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Overall Leaderboard</h1>
-
+    <div>
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <Input
-          placeholder="Search models..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-64"
+        <div className="relative max-w-64">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 dark:text-slate-400 h-4 w-4" />
+          <Input
+            placeholder="Search models..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 bg-white/10 dark:bg-white/5 border-white/30 dark:border-white/20 backdrop-blur-md shadow-sm"
+          />
+        </div>
+        <GlobalFilters
+          providerFilter={providerFilter}
+          onProviderFilterChange={setProviderFilter}
+          contextLengthFilter={contextLengthFilter}
+          onContextLengthFilterChange={setContextLengthFilter}
+          availableColumns={availableColumns}
+          visibleColumns={visibleColumns}
+          onColumnVisibilityChange={setVisibleColumns}
+          additionalFilters={
+            <>
+              <DropdownMenu
+                value={modelTypeFilter}
+                onValueChange={setModelTypeFilter}
+                placeholder="Models"
+                icon={<Cpu className="h-4 w-4" />}
+                dynamicWidth
+                options={[
+                  { value: "all", label: "All" },
+                  { value: "Reasoning", label: "Reasoning" },
+                  { value: "Non-Reasoning", label: "Non-Reasoning" }
+                ]}
+              />
+              <DropdownMenu
+                value={strategyFilter}
+                onValueChange={setStrategyFilter}
+                placeholder="Strategy"
+                icon={<Target className="h-4 w-4" />}
+                dynamicWidth
+                minWidth={140}
+                options={[
+                  { value: "all", label: "All" },
+                  { value: "Default (Single Pass)", label: "Zero-Shot" },
+                  { value: "Self-Consistency CoT (N=3 samples)", label: "SC-CoT N=3" },
+                  { value: "Self-Consistency CoT (N=5 samples)", label: "SC-CoT N=5" },
+                  { value: "Self-Discover", label: "Self-Discover" }
+                ]}
+              />
+            </>
+          }
         />
-        <Select value={modelTypeFilter} onValueChange={setModelTypeFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="All Model Types" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Model Types</SelectItem>
-            <SelectItem value="Reasoning">Reasoning</SelectItem>
-            <SelectItem value="Non-Reasoning">Non-Reasoning</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={strategyFilter} onValueChange={setStrategyFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="All Strategies" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Strategies</SelectItem>
-            <SelectItem value="Default (Single Pass)">Zero-Shot</SelectItem>
-            <SelectItem value="Self-Consistency CoT (N=3 samples)">SC-CoT N=3</SelectItem>
-            <SelectItem value="Self-Consistency CoT (N=5 samples)">SC-CoT N=5</SelectItem>
-            <SelectItem value="Self-Discover">Self-Discover</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="font-semibold">Top 10 Overall Scores</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="font-medium">Rank</TableHead>
-                <TableHead className="font-medium">Model</TableHead>
-                <TableHead className="font-medium">Overall Score</TableHead>
-                <TableHead className="font-medium">Provider</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {top10Overall.map((model, index) => (
-                <TableRow key={model.model} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <TableCell className="font-light">
-                    <div className="flex items-center justify-center">
-                      <MedalIcon rank={index + 1} />
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-light">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">{model.model}</div>
-                  </TableCell>
-                  <TableCell className="font-light">
-                    <div className="text-sm text-gray-900 dark:text-white">
-                      {model.overallScore.toFixed(2)}
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-light">
-                    <ProviderLogo modelName={model.model} showName />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <div className="mb-8">
+        <LeaderboardTable
+          data={sortedOverallScores}
+          columns={overallColumns}
+          isLoading={isLoading}
+          visibleColumns={visibleColumns}
+        />
+      </div>
+    </div>
+  );
+}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-semibold">Top 10 MCQ Results</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-medium">Rank</TableHead>
-                    <TableHead className="font-medium">Model</TableHead>
-                    <TableHead className="font-medium">Accuracy</TableHead>
-                    <TableHead className="font-medium">Provider</TableHead>
-                    <TableHead className="font-medium">
-                      <div className="flex items-center">
-                        Strategy
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="ml-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {Object.entries(strategyDescriptions).map(([key, value]) => (
-                                <p key={key}><strong>{strategyDisplayNames[key] || key}:</strong> {value}</p>
-                              ))}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {top10Mcq.map((model, index) => (
-                    <TableRow key={model.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                      <TableCell className="font-light">
-                        <div className="flex items-center justify-center">
-                          <MedalIcon rank={index + 1} />
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-light">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">{model.model}</div>
-                      </TableCell>
-                      <TableCell className="font-light">
-                        <div className="text-sm text-gray-900 dark:text-white">
-                          {(model.accuracy * 100).toFixed(2)}%
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-light">
-                        <ProviderLogo modelName={model.model} showName />
-                      </TableCell>
-                      <TableCell className="font-light">
-                        <Badge variant="outline">
-                          {strategyDisplayNames[model.strategy] || model.strategy}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+export default function Overall() {
+  const [currentView, setCurrentView] = useState<ViewType>('overall');
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-semibold">Top 10 Essay Results</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-medium">Rank</TableHead>
-                    <TableHead className="font-medium">Model</TableHead>
-                    <TableHead className="font-medium">Self Grade</TableHead>
-                    <TableHead className="font-medium">Provider</TableHead>
-                    <TableHead className="font-medium">
-                      <div className="flex items-center">
-                        Strategy
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="ml-2 w-4 h-4 text-gray-500 dark:text-gray-400 cursor-pointer" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {Object.entries(strategyDescriptions).map(([key, value]) => (
-                                <p key={key}><strong>{strategyDisplayNames[key] || key}:</strong> {value}</p>
-                              ))}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {top10Essay.map((model, index) => (
-                    <TableRow key={model.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                      <TableCell className="font-light">
-                        <div className="flex items-center justify-center">
-                          <MedalIcon rank={index + 1} />
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-light">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">{model.model}</div>
-                      </TableCell>
-                      <TableCell className="font-light">
-                        <div className="text-sm text-gray-900 dark:text-white">
-                          {model.avgSelfGrade.toFixed(2)}
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-light">
-                        <ProviderLogo modelName={model.model} showName />
-                      </TableCell>
-                      <TableCell className="font-light">
-                        <Badge variant="outline">
-                          {strategyDisplayNames[model.strategyShort] || model.strategyShort}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
+  const renderContent = () => {
+    switch (currentView) {
+      case 'mcq':
+        return (
+          <div className="w-full px-6 lg:px-8 py-8 flex-grow">
+            <div className="max-w-7xl mx-auto">
+              <McqLeaderboard />
+            </div>
+          </div>
+        );
+      case 'essay':
+        return (
+          <div className="w-full px-6 lg:px-8 py-8 flex-grow">
+            <div className="max-w-7xl mx-auto">
+              <EssayLeaderboard />
+            </div>
+          </div>
+        );
+      default:
+        return (
+          <div className="w-full px-6 lg:px-8 py-8 flex-grow">
+            <div className="max-w-7xl mx-auto">
+              <OverallContent />
+            </div>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <ViewContext.Provider value={{ currentView, setCurrentView }}>
+      <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100/30 dark:from-black dark:via-gray-900 dark:to-gray-800">
+        <HeaderNavigation />
+        <div className="flex-grow relative">
+          <div className="absolute inset-0 bg-dot-pattern opacity-5 dark:opacity-10"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-blue-500/5 to-[#464348]/10 dark:via-blue-500/10 dark:to-[#464348]/20"></div>
+          <div className="relative z-10">
+            <HeroSection />
+            {renderContent()}
           </div>
         </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
+    </ViewContext.Provider>
   );
 }

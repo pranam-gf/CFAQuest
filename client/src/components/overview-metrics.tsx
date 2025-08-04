@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
-import { Bot, Target, PenTool, DollarSign, TrendingUp } from "lucide-react";
 import { Statistics } from "@/types/models";
+import { motion } from 'framer-motion';
 
 export function OverviewMetrics() {
   const { data: stats, isLoading } = useQuery<Statistics>({
@@ -12,11 +11,9 @@ export function OverviewMetrics() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="h-20 bg-slate-200 rounded"></div>
-            </CardContent>
-          </Card>
+          <div key={i} className="animate-pulse">
+            <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded-xl"></div>
+          </div>
         ))}
       </div>
     );
@@ -31,83 +28,91 @@ export function OverviewMetrics() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-600">Total Models</p>
-              <p className="text-2xl font-semibold text-slate-900">{stats.totalModels}</p>
-            </div>
-            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Bot className="text-primary w-6 h-6" />
-            </div>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+    >
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.1 }}
+        className="text-center"
+      >
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Total Models</h3>
+          <p className="text-xs text-gray-600 dark:text-gray-400">Active in evaluation</p>
+        </div>
+        <div>
+          <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+            {stats.totalModels}
           </div>
-          <div className="mt-4 flex items-center text-sm">
-            <span className="text-success flex items-center">
-              <TrendingUp className="w-3 h-3 mr-1" />
-              Active models
-            </span>
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            Models benchmarked
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </motion.div>
 
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-600">Best MCQ Accuracy</p>
-              <p className="text-2xl font-semibold text-slate-900">
-                {(stats.bestMcqAccuracy * 100).toFixed(2)}%
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center">
-              <Target className="text-success w-6 h-6" />
-            </div>
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.2 }}
+        className="text-center"
+      >
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Best MCQ Accuracy</h3>
+          <p className="text-xs text-gray-600 dark:text-gray-400">Highest scoring model</p>
+        </div>
+        <div>
+          <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+            {(stats.bestMcqAccuracy * 100).toFixed(1)}%
           </div>
-          <div className="mt-4 flex items-center text-sm">
-            <span className="text-slate-600">{stats.bestMcqModel}</span>
+          <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+            {stats.bestMcqModel}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </motion.div>
 
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-600">Best Essay Score</p>
-              <p className="text-2xl font-semibold text-slate-900">
-                {stats.bestEssayScore.toFixed(2)}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center">
-              <PenTool className="text-success w-6 h-6" />
-            </div>
+      <motion.div
+        initial={{ opacity: 0, x: 10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.3 }}
+        className="text-center"
+      >
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Best Essay Score</h3>
+          <p className="text-xs text-gray-600 dark:text-gray-400">Top essay evaluation</p>
+        </div>
+        <div>
+          <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+            {stats.bestEssayScore.toFixed(2)}
           </div>
-          <div className="mt-4 flex items-center text-sm">
-            <span className="text-slate-600">{stats.bestEssayModel}</span>
+          <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+            {stats.bestEssayModel}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </motion.div>
 
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-600">Most Cost Efficient</p>
-              <p className="text-2xl font-semibold text-slate-900">
-                {stats.mostCostEfficient.toFixed(0)}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center">
-              <DollarSign className="text-success w-6 h-6" />
-            </div>
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.4 }}
+        className="text-center"
+      >
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Most Cost Efficient</h3>
+          <p className="text-xs text-gray-600 dark:text-gray-400">Best value performance</p>
+        </div>
+        <div>
+          <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+            {stats.mostCostEfficient.toFixed(0)}
           </div>
-          <div className="mt-4 flex items-center text-sm">
-            <span className="text-slate-600">{stats.mostCostEfficientModel}</span>
+          <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+            {stats.mostCostEfficientModel}
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }

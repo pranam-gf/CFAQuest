@@ -423,9 +423,9 @@ export function PerformanceCharts() {
             <Tooltip content={<CleanTooltip />} />
             <Scatter 
               dataKey="y" 
-              fill="#10B981"
+              fill="#3B82F6"
               fillOpacity={0.7}
-              stroke="#059669"
+              stroke="#1D4ED8"
               strokeWidth={1}
             />
           </ScatterChart>
@@ -459,12 +459,12 @@ export function PerformanceCharts() {
                 <p className="text-xs text-gray-600 dark:text-gray-400">Performance Score</p>
               </div>
               <div className="relative">
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                   {strategy.performance.toFixed(1)}%
                 </div>
                 <div className="w-full bg-white/20 dark:bg-white/10 rounded-full h-2 overflow-hidden">
                   <motion.div
-                    className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full"
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full"
                     initial={{ width: 0 }}
                     animate={{ width: `${strategy.performance}%` }}
                     transition={{ delay: 1.0 + index * 0.1, duration: 0.8 }}

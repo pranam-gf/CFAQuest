@@ -362,7 +362,7 @@ export default function ComparePage() {
         <div className="absolute inset-0 bg-dot-pattern opacity-5 dark:opacity-10"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-blue-500/5 to-[#464348]/10 dark:via-blue-500/10 dark:to-[#464348]/20"></div>
         <div className="relative z-10">
-        <div className="container mx-auto py-8">
+        <div className="container mx-auto pt-16 pb-8">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">Model Comparison</h1>
             <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">Select models to compare their performance side-by-side.</p>

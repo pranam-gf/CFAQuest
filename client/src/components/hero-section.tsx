@@ -95,7 +95,7 @@ export function HeroSection() {
               </h1>
 
               {/* AI Providers Label */}
-              <div className="inline-flex items-center gap-1 bg-white/50 dark:bg-white/10 backdrop-blur-md rounded-2xl px-6 py-2 border border-white/60 dark:border-white/20 shadow-md shadow-gray-200/10 dark:shadow-black/10">
+              <div className="inline-flex items-center gap-1 bg-white/50 dark:bg-white/10 backdrop-blur-md rounded-2xl px-6 py-2 border border-gray-300 dark:border-white/20 shadow-md shadow-gray-200/10 dark:shadow-black/10">
                 <span className="text-sm text-slate-500 dark:text-gray-400 font-medium uppercase tracking-wide">
                 Benchmarked on CFA Level 3
                 </span>

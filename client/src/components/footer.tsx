@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
         <div className="flex justify-between items-center">
           <div>
             <p className="text-xs text-gray-400">
-              &copy; {new Date().getFullYear()} CFAQuest, Inc.
+              &copy; {new Date().getFullYear()} Fin-Arena, Inc.
             </p>
             <p className="text-xs text-gray-500">
               Backed by <a href="https://www.goodfin.com" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 underline">Goodfin Research</a>

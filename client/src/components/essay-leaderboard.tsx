@@ -201,6 +201,17 @@ export function EssayLeaderboard() {
         strategyOptions={strategyOptions}
         isMultiSelectStrategy={false}
       />
+      
+      <div className="mb-6">
+        <div className="flex justify-end">
+          <div className="inline-flex items-center gap-2 bg-white/40 dark:bg-white/10 backdrop-blur-md rounded-lg px-3 py-1.5 border border-white/30 dark:border-white/20 shadow-sm">
+            <span className="text-xs text-slate-500 dark:text-gray-400 font-medium">
+              Last updated: July 31st, 2025
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white/10 dark:bg-white/5 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl p-6 overflow-visible">
         <LeaderboardTable
           data={sortedData}

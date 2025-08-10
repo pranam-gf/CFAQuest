@@ -122,6 +122,7 @@ export function HeroPerformanceChart() {
   reasoningModels.sort((a, b) => a.essayScore - b.essayScore);
   nonReasoningModels.sort((a, b) => a.essayScore - b.essayScore);
 
+  // Fixed width to fit properly without horizontal scaling
   const width = 1100;
   const height = 700;
   const margin = { top: 100, right: 100, bottom: 120, left: 60 };
@@ -132,8 +133,8 @@ export function HeroPerformanceChart() {
   const xValues = chartData.map(d => d.essayScore);
   const yValues = chartData.map(d => d.mcqScore);
   
-  const xMin = Math.max(Math.min(...xValues) - 0.2, 0);
-  const xMax = Math.min(Math.max(...xValues) + 0.2, 4);
+  const xMin = 2.5;
+  const xMax = 3.5;
   const yMin = Math.max(Math.min(...yValues) - 5, 0);
   const yMax = Math.min(Math.max(...yValues) + 5, 100);
 
@@ -142,10 +143,10 @@ export function HeroPerformanceChart() {
   
   const yScale = (value: number) => chartHeight - ((value - yMin) / (yMax - yMin)) * chartHeight;
 
-  // Generate dynamic ticks based on bounds
+  // Generate ticks with smaller intervals for better fit
   const xTicks = [];
-  for (let i = Math.ceil(xMin * 4) / 4; i <= xMax; i += 0.25) {
-    xTicks.push(Math.round(i * 4) / 4);
+  for (let i = xMin; i <= xMax; i += 0.1) {
+    xTicks.push(Math.round(i * 10) / 10);
   }
   
   // Generate detailed Y ticks with more granular values

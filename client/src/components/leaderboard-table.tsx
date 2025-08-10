@@ -125,16 +125,16 @@ export function LeaderboardTable<T extends Record<string, any>>({
         const percentage = column.type === 'accuracy' ? value * 100 : (value / (column.maxValue || 4)) * 100;
         const barColor = 'bg-emerald-500';
         return (
-          <div className="flex items-center">
-            <div className="flex-1 bg-white/20 dark:bg-white/10 rounded-full h-2 mr-3">
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-gray-900 dark:text-white text-center">
+              {column.type === 'accuracy' ? `${Math.round(percentage)}%` : value}
+            </span>
+            <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2 border border-gray-300/50 dark:border-transparent">
               <div
                 className={`${barColor} h-2 rounded-full`}
                 style={{ width: `${percentage}%` }}
               />
             </div>
-            <span className="text-sm font-medium text-gray-900 dark:text-white">
-              {column.type === 'accuracy' ? `${Math.round(percentage)}%` : value}
-            </span>
           </div>
         );
 

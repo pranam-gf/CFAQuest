@@ -34,7 +34,12 @@ const strategyDescriptions: Record<string, string> = {
   "Self-Discover": "The model autonomously discovers reasoning structures to solve complex problems.",
 };
 
-export function EssayLeaderboard() {
+interface EssayLeaderboardProps {
+  viewFilter?: string;
+  onViewFilterChange?: (view: string) => void;
+}
+
+export function EssayLeaderboard({ viewFilter = "essay", onViewFilterChange }: EssayLeaderboardProps = {}) {
   const [searchTerm, setSearchTerm] = useState("");
   const [modelTypeFilter, setModelTypeFilter] = useState("");
   const [strategyFilter, setStrategyFilter] = useState("");
@@ -200,6 +205,8 @@ export function EssayLeaderboard() {
         onColumnVisibilityChange={setVisibleColumns}
         strategyOptions={strategyOptions}
         isMultiSelectStrategy={false}
+        viewFilter={viewFilter}
+        onViewFilterChange={onViewFilterChange}
       />
       
       <div className="mb-6">

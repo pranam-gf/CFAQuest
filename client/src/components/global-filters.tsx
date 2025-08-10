@@ -3,11 +3,14 @@ import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { MultiSelectDropdown } from "@/components/ui/multi-select-dropdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, Building2, Database, Eye, Check } from "lucide-react";
+import { ChevronDown, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getProviderInfo } from "@/lib/provider-mapping";
 import { ProviderLogo } from "@/components/provider-logo";
+import { useLocation } from "wouter";
+import { useView } from "@/pages/overall";
+import type { ReactNode } from "react";
 
 // Provider options with logos
 const PROVIDER_OPTIONS = [
@@ -31,6 +34,13 @@ const CONTEXT_LENGTH_OPTIONS = [
   { value: "500k+", label: "500K+" },
 ];
 
+// View Filter Options
+const VIEW_TYPE_OPTIONS = [
+  { value: "overall", label: "Overall Leaderboard" },
+  { value: "mcq", label: "MCQ Results" },
+  { value: "essay", label: "Essay Results" },
+];
+
 interface GlobalFiltersProps {
   // Provider filter (now supports multi-select)
   providerFilter: string | string[];
@@ -48,6 +58,10 @@ interface GlobalFiltersProps {
   // Additional filters (specific to each leaderboard)
   additionalFilters?: React.ReactNode;
   
+  // View filter
+  viewFilter?: string;
+  onViewFilterChange?: (view: string) => void;
+  
   // Collapse state
   className?: string;
 }
@@ -61,6 +75,8 @@ export function GlobalFilters({
   visibleColumns,
   onColumnVisibilityChange,
   additionalFilters,
+  viewFilter,
+  onViewFilterChange,
   className
 }: GlobalFiltersProps) {
   const [showColumnSelector, setShowColumnSelector] = useState(false);
@@ -83,93 +99,103 @@ export function GlobalFilters({
 
   return (
     <div className={cn("flex flex-wrap lg:flex-nowrap items-center gap-3 flex-1", className)}>
-        {/* Provider Filter - Multi-select */}
-        <MultiSelectDropdown
-          value={Array.isArray(providerFilter) ? providerFilter.filter(v => v !== 'all') : (providerFilter && providerFilter !== 'all' ? [providerFilter] : [])}
-          onValueChange={(values) => onProviderFilterChange(values)}
-          placeholder="AI Providers"
-          options={PROVIDER_OPTIONS}
-          icon={<Building2 className="h-4 w-4 text-slate-600 dark:text-gray-300" />}
-          minWidth={160}
-          className="flex-1 min-w-[160px] max-w-[200px]"
+      {/* View Filter */}
+      {viewFilter && onViewFilterChange && (
+        <DropdownMenu
+          value={viewFilter}
+          onValueChange={onViewFilterChange}
+          placeholder="View Type"
+          dynamicWidth={false}
+          minWidth={200}
+          className="flex-1 min-w-[200px] max-w-[250px]"
+          options={VIEW_TYPE_OPTIONS}
         />
-        
-        {/* Context Length Filter - Multi-select */}
-        <MultiSelectDropdown
-          value={Array.isArray(contextLengthFilter) ? contextLengthFilter.filter(v => v !== 'all') : (contextLengthFilter && contextLengthFilter !== 'all' ? [contextLengthFilter] : [])}
-          onValueChange={(values) => onContextLengthFilterChange(values)}
-          placeholder="Context Length"
-          options={CONTEXT_LENGTH_OPTIONS}
-          icon={<Database className="h-4 w-4 text-slate-600 dark:text-gray-300" />}
-          minWidth={160}
-          className="flex-1 min-w-[160px] max-w-[200px]"
-        />
+      )}
+      
+      {/* Provider Filter - Multi-select */}
+      <MultiSelectDropdown
+        value={Array.isArray(providerFilter) ? providerFilter.filter(v => v !== 'all') : (providerFilter && providerFilter !== 'all' ? [providerFilter] : [])}
+        onValueChange={(values) => onProviderFilterChange(values)}
+        placeholder="AI Providers"
+        options={PROVIDER_OPTIONS}
+        minWidth={160}
+        className="flex-1 min-w-[160px] max-w-[200px]"
+      />
+      
+      {/* Context Length Filter - Multi-select */}
+      <MultiSelectDropdown
+        value={Array.isArray(contextLengthFilter) ? contextLengthFilter.filter(v => v !== 'all') : (contextLengthFilter && contextLengthFilter !== 'all' ? [contextLengthFilter] : [])}
+        onValueChange={(values) => onContextLengthFilterChange(values)}
+        placeholder="Context Length"
+        options={CONTEXT_LENGTH_OPTIONS}
+        minWidth={160}
+        className="flex-1 min-w-[160px] max-w-[200px]"
+      />
 
-        {/* Additional Filters */}
-        {additionalFilters}
+      {/* Additional Filters */}
+      {additionalFilters}
 
-        {/* Column Visibility Dropdown */}
-        <div className="relative flex-1 min-w-[160px] max-w-[200px]">
-          <Button
-            variant="outline"
-            className="h-10 w-full bg-white/10 dark:bg-white/5 border-white/30 dark:border-white/20 backdrop-blur-md hover:bg-white/20 dark:hover:bg-white/10 text-slate-700 dark:text-gray-200 shadow-sm"
-            onClick={() => setShowColumnSelector(!showColumnSelector)}
-          >
-            <Eye className="h-4 w-4 mr-1 text-slate-600 dark:text-gray-300" />
-            Columns
-            <ChevronDown className={cn("h-4 w-4 ml-1 transition-transform text-slate-600 dark:text-gray-300", showColumnSelector && "rotate-180")} />
-          </Button>
+      {/* Column Visibility Dropdown */}
+      <div className="relative flex-1 min-w-[160px] max-w-[200px]">
+        <Button
+          variant="outline"
+          className="h-10 w-full bg-white/10 dark:bg-white/5 border-white/30 dark:border-white/20 backdrop-blur-md hover:bg-white/20 dark:hover:bg-white/10 text-slate-700 dark:text-gray-200 shadow-sm flex items-center justify-between"
+          onClick={() => setShowColumnSelector(!showColumnSelector)}
+        >
+          <span className="font-medium">Columns</span>
+          <ChevronDown className={cn("h-4 w-4 transition-transform text-slate-600 dark:text-gray-300", showColumnSelector && "rotate-180")} />
+        </Button>
 
-          <AnimatePresence>
-            {showColumnSelector && (
-              <motion.div
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.15, ease: "easeOut" }}
-                className="absolute z-50 mt-1 w-64 rounded-md p-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border border-white/60 dark:border-gray-700 shadow-xl"
-                style={{ transformOrigin: "top center" }}
-              >
-                <div className="space-y-1 max-h-60 overflow-auto">
-                  <div className="mb-2 px-3 py-1">
-                    <span className="text-sm font-medium text-slate-900 dark:text-white">
-                      Show Columns
-                    </span>
-                  </div>
-                  {availableColumns.map((column, index) => (
-                    <motion.button
-                      key={column.key}
-                      type="button"
-                      onClick={() => toggleColumn(column.key)}
-                      className="relative flex w-full cursor-pointer select-none items-center justify-between rounded-md px-3 py-2 text-sm outline-none transition-all duration-200 text-slate-700 dark:text-gray-200 font-medium hover:bg-white/60 dark:hover:bg-white/10 focus:bg-white/60 dark:focus:bg-white/10"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ 
-                        duration: 0.15,
-                        delay: index * 0.03,
-                        ease: "easeOut"
-                      }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <span className="truncate">{column.label}</span>
-                      {visibleColumns.includes(column.key) && (
-                        <motion.div
-                          className="flex-shrink-0 ml-2"
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ duration: 0.15, delay: 0.1 }}
-                        >
-                          <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                        </motion.div>
-                      )}
-                    </motion.button>
-                  ))}
+        <AnimatePresence>
+          {showColumnSelector && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="absolute z-50 mt-1 w-52 rounded-md p-2 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border border-white/60 dark:border-gray-700 shadow-xl"
+              style={{ transformOrigin: "top center" }}
+            >
+              <div className="space-y-0.5 max-h-48 overflow-auto">
+                <div className="mb-1 px-2 py-1">
+                  <span className="text-xs font-medium text-slate-900 dark:text-white">
+                    Show Columns
+                  </span>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                {availableColumns.map((column, index) => (
+                  <motion.button
+                    key={column.key}
+                    type="button"
+                    onClick={() => toggleColumn(column.key)}
+                    className="relative flex w-full cursor-pointer select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none transition-all duration-200 text-slate-700 dark:text-gray-200 font-medium hover:bg-white/60 dark:hover:bg-white/10 focus:bg-white/60 dark:focus:bg-white/10"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ 
+                      duration: 0.15,
+                      delay: index * 0.02,
+                      ease: "easeOut"
+                    }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                  >
+                    <span className="truncate text-sm">{column.label}</span>
+                    {visibleColumns.includes(column.key) && (
+                      <motion.div
+                        className="flex-shrink-0 ml-1.5"
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.15, delay: 0.1 }}
+                      >
+                        <Check className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                      </motion.div>
+                    )}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

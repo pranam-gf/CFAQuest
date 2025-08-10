@@ -24,7 +24,12 @@ const strategyDescriptions: Record<string, string> = {
   "Self-Discover": "The model autonomously discovers reasoning structures to solve complex problems.",
 };
 
-export function McqLeaderboard() {
+interface McqLeaderboardProps {
+  viewFilter?: string;
+  onViewFilterChange?: (view: string) => void;
+}
+
+export function McqLeaderboard({ viewFilter = "mcq", onViewFilterChange }: McqLeaderboardProps = {}) {
   const [searchTerm, setSearchTerm] = useState("");
   const [modelTypeFilter, setModelTypeFilter] = useState("");
   const [strategyFilter, setStrategyFilter] = useState("");
@@ -157,6 +162,8 @@ export function McqLeaderboard() {
         onColumnVisibilityChange={setVisibleColumns}
         strategyOptions={strategyOptions}
         isMultiSelectStrategy={false}
+        viewFilter={viewFilter}
+        onViewFilterChange={onViewFilterChange}
       />
       
       <div className="mb-6">

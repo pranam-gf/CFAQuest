@@ -47,7 +47,12 @@ const ViewContext = createContext<{
 
 export const useView = () => useContext(ViewContext);
 
-function OverallContent() {
+interface OverallContentProps {
+  viewFilter?: string;
+  onViewFilterChange?: (view: string) => void;
+}
+
+function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallContentProps = {}) {
   const [searchTerm, setSearchTerm] = useState("");
   const [modelTypeFilter, setModelTypeFilter] = useState("");
   const [strategyFilter, setStrategyFilter] = useState<string[]>([]);
@@ -166,16 +171,16 @@ function OverallContent() {
         }
         const percentage = mcqMatch.accuracy * 100;
         return (
-          <div className="flex items-center">
-            <div className="flex-1 bg-white/20 dark:bg-white/10 rounded-full h-2 mr-3">
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-gray-900 dark:text-white text-center">
+              {Math.round(percentage)}%
+            </span>
+            <div className="bg-white/20 dark:bg-white/10 rounded-full h-2 border border-gray-300/50 dark:border-transparent">
               <div
                 className="bg-emerald-500 h-2 rounded-full"
                 style={{ width: `${percentage}%` }}
               />
             </div>
-            <span className="text-sm font-medium text-gray-900 dark:text-white">
-              {Math.round(percentage)}%
-            </span>
           </div>
         );
       }
@@ -195,16 +200,16 @@ function OverallContent() {
         }
         const percentage = (essayMatch.avgSelfGrade / 4) * 100;
         return (
-          <div className="flex items-center">
-            <div className="flex-1 bg-white/20 dark:bg-white/10 rounded-full h-2 mr-3">
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-gray-900 dark:text-white text-center">
+              {essayMatch.avgSelfGrade}
+            </span>
+            <div className="bg-white/20 dark:bg-white/10 rounded-full h-2 border border-gray-300/50 dark:border-transparent">
               <div
                 className="bg-emerald-500 h-2 rounded-full"
                 style={{ width: `${percentage}%` }}
               />
             </div>
-            <span className="text-sm font-medium text-gray-900 dark:text-white">
-              {essayMatch.avgSelfGrade}
-            </span>
           </div>
         );
       }
@@ -279,6 +284,8 @@ function OverallContent() {
         onColumnVisibilityChange={setVisibleColumns}
         strategyOptions={strategyOptions}
         isMultiSelectStrategy={true}
+        viewFilter={viewFilter}
+        onViewFilterChange={onViewFilterChange}
       />
 
       <div className="mb-6">
@@ -308,13 +315,20 @@ function OverallContent() {
 export default function Overall() {
   const [currentView, setCurrentView] = useState<ViewType>('overall');
 
+  const handleViewFilterChange = (view: string) => {
+    setCurrentView(view as ViewType);
+  };
+
   const renderContent = () => {
     switch (currentView) {
       case 'mcq':
         return (
           <div className="w-full px-6 lg:px-8 pt-8 pb-0 flex-grow overflow-visible">
             <div className="max-w-7xl mx-auto overflow-visible">
-              <McqLeaderboard />
+              <McqLeaderboard 
+                viewFilter={currentView}
+                onViewFilterChange={handleViewFilterChange}
+              />
             </div>
           </div>
         );
@@ -322,7 +336,10 @@ export default function Overall() {
         return (
           <div className="w-full px-6 lg:px-8 pt-8 pb-0 flex-grow overflow-visible">
             <div className="max-w-7xl mx-auto overflow-visible">
-              <EssayLeaderboard />
+              <EssayLeaderboard 
+                viewFilter={currentView}
+                onViewFilterChange={handleViewFilterChange}
+              />
             </div>
           </div>
         );
@@ -330,7 +347,10 @@ export default function Overall() {
         return (
           <div className="w-full px-6 lg:px-8 pt-8 pb-0 flex-grow overflow-visible">
             <div className="max-w-7xl mx-auto overflow-visible">
-              <OverallContent />
+              <OverallContent 
+                viewFilter={currentView}
+                onViewFilterChange={handleViewFilterChange}
+              />
             </div>
           </div>
         );

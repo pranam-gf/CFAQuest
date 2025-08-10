@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { MultiSelectDropdown } from "@/components/ui/multi-select-dropdown";
 import { GlobalFilters } from "@/components/global-filters";
-import { Search, Cpu, Target } from "lucide-react";
+import { Search } from "lucide-react";
 
 interface CommonFiltersProps {
   searchTerm: string;
@@ -22,6 +22,8 @@ interface CommonFiltersProps {
   strategyOptions: Array<{ value: string; label: string }>;
   isMultiSelectStrategy?: boolean;
   showModelTypeFilter?: boolean;
+  viewFilter?: string;
+  onViewFilterChange?: (view: string) => void;
 }
 
 export const CommonFilters = React.memo(function CommonFilters({
@@ -40,7 +42,9 @@ export const CommonFilters = React.memo(function CommonFilters({
   onColumnVisibilityChange,
   strategyOptions,
   isMultiSelectStrategy = false,
-  showModelTypeFilter = true
+  showModelTypeFilter = true,
+  viewFilter,
+  onViewFilterChange
 }: CommonFiltersProps) {
   return (
     <div className="flex flex-col lg:flex-row gap-3 mb-6">
@@ -61,6 +65,8 @@ export const CommonFilters = React.memo(function CommonFilters({
         availableColumns={availableColumns}
         visibleColumns={visibleColumns}
         onColumnVisibilityChange={onColumnVisibilityChange}
+        viewFilter={viewFilter}
+        onViewFilterChange={onViewFilterChange}
         additionalFilters={
           <>
             {showModelTypeFilter && onModelTypeFilterChange && (
@@ -68,7 +74,6 @@ export const CommonFilters = React.memo(function CommonFilters({
                 value={modelTypeFilter || ""}
                 onValueChange={onModelTypeFilterChange}
                 placeholder="Model Type"
-                icon={<Cpu className="h-4 w-4 text-slate-600 dark:text-gray-300" />}
                 dynamicWidth={false}
                 minWidth={160}
                 className="flex-1 min-w-[160px] max-w-[200px]"
@@ -84,7 +89,6 @@ export const CommonFilters = React.memo(function CommonFilters({
                 value={strategyFilter as string[]}
                 onValueChange={onStrategyFilterChange as (filter: string[]) => void}
                 placeholder="Strategy"
-                icon={<Target className="h-4 w-4 text-slate-600 dark:text-gray-300" />}
                 minWidth={160}
                 className="flex-1 min-w-[160px] max-w-[200px]"
                 options={strategyOptions}
@@ -94,7 +98,6 @@ export const CommonFilters = React.memo(function CommonFilters({
                 value={strategyFilter as string}
                 onValueChange={onStrategyFilterChange as (filter: string) => void}
                 placeholder="Strategy"
-                icon={<Target className="h-4 w-4 text-slate-600 dark:text-gray-300" />}
                 dynamicWidth={false}
                 minWidth={160}
                 className="flex-1 min-w-[160px] max-w-[200px]"

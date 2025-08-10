@@ -1,83 +1,92 @@
+import { useState } from "react"
 import { IconCloud } from "@/components/ui/interactive-icon-cloud"
-import { BookOpen, Trophy, Zap } from 'lucide-react'
-import { useLocation } from "wouter"
-import type { ReactNode } from "react"
-import { useView } from "@/pages/overall"
 import { HeroPerformanceChart } from "@/components/hero-performance-chart"
+import { HeroPerformanceChartV2 } from "@/components/hero-performance-chart-v2"
+import { motion } from "framer-motion"
 
 
 const providerSlugs = [
-  // AI Providers
+  // AI Providers (using existing Simple Icons)
   "openai",
   "anthropic", 
   "google",
-  "cohere",
-  "mistral",
-  "deepseek",
-  "xai",
-  "groq",
   "meta",
-  "writer",
-  "alibaba",
   
-  // Model Names
-  "claude",
-  "gpt",
-  "gemini",
-  "command",
-  "llama",
-  "grok",
-  "palmyra",
-  "codestral"
+  // Generic tech/AI related icons that exist
+  "react",
+  "typescript", 
+  "javascript",
+  "python",
+  "pytorch",
+  "tensorflow",
+  "github",
+  "gitlab",
+  "docker",
+  "kubernetes",
+  "aws",
+  "azure",
+  "googlecloud",
+  "vercel",
+  "nodejs",
+  "nextdotjs"
 ]
 
-interface NavLinkProps {
-  viewType: 'overall' | 'mcq' | 'essay';
-  children: ReactNode;
-  icon: ReactNode;
+// Custom chart navigation component with a toggle switch design
+interface ChartNavProps {
+  activeView: 'v1' | 'v2';
+  onViewChange: (view: 'v1' | 'v2') => void;
 }
 
-const NavLink = ({ viewType, children, icon }: NavLinkProps) => {
-  const [location] = useLocation();
-  const { currentView, setCurrentView } = useView();
-  
-  // Only show view switching if we're on the main page
-  const isMainPage = location === "/" || location === "/overall";
-  const isActive = isMainPage ? currentView === viewType : false;
-
-  const handleClick = () => {
-    if (isMainPage) {
-      setCurrentView(viewType);
-    } else {
-      // If not on main page, navigate to main page with the view
-      const routes = { overall: "/", mcq: "/mcq", essay: "/essay" };
-      window.location.href = routes[viewType];
-    }
-  };
-
+const ChartNavigation = ({ activeView, onViewChange }: ChartNavProps) => {
   return (
-    <button
-      onClick={handleClick}
-      className={`flex items-center justify-center sm:justify-start gap-2 sm:gap-3 backdrop-blur-md rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 border shadow-lg transition-all duration-200 min-w-fit whitespace-nowrap w-full sm:w-auto ${
-        isActive
-          ? "bg-blue-600/90 text-white border-blue-500/50 shadow-blue-600/25"
-          : "bg-white/60 dark:bg-white/10 border-white/50 dark:border-white/20 shadow-gray-200/20 dark:shadow-black/20 hover:bg-white/80 dark:hover:bg-white/20"
-      }`}
-    >
-      <div className={`w-6 h-6 ${isActive ? 'text-white' : 'text-slate-700 dark:text-gray-200'}`}>
-        {icon}
-      </div>
-      <span className={`font-semibold text-sm sm:text-base ${isActive ? 'text-white' : 'text-slate-700 dark:text-gray-200'}`}>
-        {children}
-      </span>
-    </button>
+    <div className="flex justify-center mt-8 mb-4">
+      <nav className="flex items-center space-x-2">
+        <button
+          onClick={() => onViewChange('v1')}
+          className={`relative px-3 py-2 text-sm font-medium transition-colors duration-300 ${
+            activeView === 'v1' ? 'text-gray-900 dark:text-white' : 'text-slate-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+          }`}
+        >
+          <span className="relative z-10">Overall Performance</span>
+          {activeView === 'v1' && (
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 h-[2px] bg-blue-500"
+              style={{
+                boxShadow: "0px 0px 8px 0px #3b82f6",
+              }}
+              layoutId="chart-view-underline"
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            />
+          )}
+        </button>
+        <button
+          onClick={() => onViewChange('v2')}
+          className={`relative px-3 py-2 text-sm font-medium transition-colors duration-300 ${
+            activeView === 'v2' ? 'text-gray-900 dark:text-white' : 'text-slate-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+          }`}
+        >
+          <span className="relative z-10">Leaderboard</span>
+          {activeView === 'v2' && (
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 h-[2px] bg-blue-500"
+              style={{
+                boxShadow: "0px 0px 8px 0px #3b82f6",
+              }}
+              layoutId="chart-view-underline"
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            />
+          )}
+        </button>
+      </nav>
+    </div>
   );
 };
 
 export function HeroSection() {
+  const [activeChartView, setActiveChartView] = useState<'v1' | 'v2'>('v1');
   return (
     <div className="relative">
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 sm:pt-40 lg:pt-48 pb-0">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-40 sm:pt-48 lg:pt-56 pb-0">
         <div className="max-w-6xl mx-auto text-center">
           {/* Title and subtitle section with IconCloud behind */}
           <div className="relative">
@@ -110,38 +119,16 @@ export function HeroSection() {
         </div>
         
         {/* Performance Chart - Outside max-width constraint */}
-        <div className="mb-8 sm:mb-12 -mx-4 sm:-mx-6 lg:-mx-8">
-          <HeroPerformanceChart />
+        <div className="relative z-20 mb-8 sm:mb-12 -mx-4 sm:-mx-6 lg:-mx-8">
+          {activeChartView === 'v1' && <HeroPerformanceChart />}
+          {activeChartView === 'v2' && <HeroPerformanceChartV2 />}
+
+          <ChartNavigation 
+            activeView={activeChartView} 
+            onViewChange={setActiveChartView} 
+          />
         </div>
         
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Navigation Section */}
-          <div className="mb-0 mt-6 sm:mt-10">
-            <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 text-center px-4">
-              Explore Benchmarks
-            </h2>
-            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-6 justify-center items-center px-4">
-              <NavLink 
-                viewType="overall" 
-                icon={<Trophy className="w-6 h-6" />}
-              >
-                Overall Leaderboard
-              </NavLink>
-              <NavLink 
-                viewType="mcq" 
-                icon={<Zap className="w-6 h-6" />}
-              >
-                MCQ Results
-              </NavLink>
-              <NavLink 
-                viewType="essay" 
-                icon={<BookOpen className="w-6 h-6" />}
-              >
-                Essay Results
-              </NavLink>
-            </div>
-          </div>  
-        </div>
       </div>
     </div>
   )

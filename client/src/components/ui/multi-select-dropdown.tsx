@@ -57,42 +57,22 @@ export function MultiSelectDropdown({
   };
 
   const handleOptionClick = (optionValue: string) => {
-    if (optionValue === 'all') {
-      onValueChange(['all']);
-      return;
-    }
-
     let newValue: string[];
     if (value.includes(optionValue)) {
-      // Remove the option
       newValue = value.filter(v => v !== optionValue);
-      // If removing makes the array empty or only contains 'all', set to 'all'
-      if (newValue.length === 0 || (newValue.length === 1 && newValue[0] === 'all')) {
-        newValue = ['all'];
-      } else {
-        // Remove 'all' if it exists when selecting specific items
-        newValue = newValue.filter(v => v !== 'all');
-      }
     } else {
-      // Add the option
-      if (value.includes('all')) {
-        // Replace 'all' with the specific option
-        newValue = [optionValue];
-      } else {
-        newValue = [...value, optionValue];
-      }
+      newValue = [...value, optionValue];
     }
-    
     onValueChange(newValue);
   };
 
   const clearAll = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onValueChange(['all']);
+    onValueChange([]);
   };
 
   const getDisplayText = () => {
-    if (value.includes('all') || value.length === 0) {
+    if (value.length === 0) {
       return placeholder;
     }
     
@@ -103,7 +83,7 @@ export function MultiSelectDropdown({
     return `${selectedOptions.slice(0, maxDisplayItems).map(option => option.label).join(', ')} +${selectedOptions.length - maxDisplayItems}`;
   };
 
-  const hasSelections = !value.includes('all') && value.length > 0;
+  const hasSelections = value.length > 0;
 
   return (
     <div 

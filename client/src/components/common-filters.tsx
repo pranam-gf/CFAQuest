@@ -83,7 +83,7 @@ export const CommonFilters = React.memo(function CommonFilters({
               <MultiSelectDropdown
                 value={strategyFilter as string[]}
                 onValueChange={onStrategyFilterChange as (filter: string[]) => void}
-                placeholder="Strategies"
+                placeholder="Strategy"
                 icon={<Target className="h-4 w-4 text-slate-600 dark:text-gray-300" />}
                 minWidth={160}
                 className="flex-1 min-w-[160px] max-w-[200px]"

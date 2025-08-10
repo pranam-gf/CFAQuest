@@ -11,7 +11,6 @@ import { ProviderLogo } from "@/components/provider-logo";
 
 // Provider options with logos
 const PROVIDER_OPTIONS = [
-  { value: "all", label: "All Providers" },
   { value: "Anthropic", label: "Anthropic" },
   { value: "OpenAI", label: "OpenAI" },
   { value: "Google", label: "Google" },
@@ -26,7 +25,6 @@ const PROVIDER_OPTIONS = [
 
 // Context length options
 const CONTEXT_LENGTH_OPTIONS = [
-  { value: "all", label: "All Context" },
   { value: "0-32k", label: "0-32K" },
   { value: "32k-100k", label: "32K-100K" },
   { value: "100k-500k", label: "100K-500K" },
@@ -87,7 +85,7 @@ export function GlobalFilters({
     <div className={cn("flex flex-wrap lg:flex-nowrap items-center gap-3 flex-1", className)}>
         {/* Provider Filter - Multi-select */}
         <MultiSelectDropdown
-          value={Array.isArray(providerFilter) ? providerFilter : [providerFilter || 'all']}
+          value={Array.isArray(providerFilter) ? providerFilter.filter(v => v !== 'all') : (providerFilter && providerFilter !== 'all' ? [providerFilter] : [])}
           onValueChange={(values) => onProviderFilterChange(values)}
           placeholder="AI Providers"
           options={PROVIDER_OPTIONS}
@@ -98,7 +96,7 @@ export function GlobalFilters({
         
         {/* Context Length Filter - Multi-select */}
         <MultiSelectDropdown
-          value={Array.isArray(contextLengthFilter) ? contextLengthFilter : [contextLengthFilter || 'all']}
+          value={Array.isArray(contextLengthFilter) ? contextLengthFilter.filter(v => v !== 'all') : (contextLengthFilter && contextLengthFilter !== 'all' ? [contextLengthFilter] : [])}
           onValueChange={(values) => onContextLengthFilterChange(values)}
           placeholder="Context Length"
           options={CONTEXT_LENGTH_OPTIONS}

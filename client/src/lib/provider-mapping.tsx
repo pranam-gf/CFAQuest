@@ -37,9 +37,9 @@ const DeepSeekLogo: React.FC<LogoProps> = (props) => (
   <img 
     src="/svgs/deepseek.svg" 
     alt="DeepSeek" 
-    width="22" 
-    height="22" 
-    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+    width="24" 
+    height="24" 
+    style={{ width: '24px', height: '24px', objectFit: 'contain' }}
     {...props}
   />
 );
@@ -52,10 +52,10 @@ const WriterLogo: React.FC<LogoProps> = ({ className, ...props }) => (
   <img 
     src="/svgs/writer.svg" 
     alt="Writer" 
-    width="28" 
-    height="22" 
-    style={{ width: '120%', height: '100%', objectFit: 'contain' }}
-    className={`dark:invert ${className || ''}`}
+    width="24" 
+    height="24" 
+    style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+    className={`${className || ''}`}
     {...props}
   />
 );
@@ -84,10 +84,10 @@ const XAILogo: React.FC<LogoProps> = ({ className, ...props }) => (
   <img 
     src="/svgs/xai.svg" 
     alt="xAI" 
-    width="22" 
-    height="22" 
-    style={{ width: '100%', height: '100%' }}
-    className={`dark:invert ${className || ''}`}
+    width="24" 
+    height="24" 
+    style={{ width: '24px', height: '24px' }}
+    className={`${className || ''}`}
     {...props}
   />
 );

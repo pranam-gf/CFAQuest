@@ -50,9 +50,9 @@ export const useView = () => useContext(ViewContext);
 function OverallContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [modelTypeFilter, setModelTypeFilter] = useState("");
-  const [strategyFilter, setStrategyFilter] = useState<string[]>(["all"]);
-  const [providerFilter, setProviderFilter] = useState<string[]>(["all"]);
-  const [contextLengthFilter, setContextLengthFilter] = useState<string[]>(["all"]);
+  const [strategyFilter, setStrategyFilter] = useState<string[]>([]);
+  const [providerFilter, setProviderFilter] = useState<string[]>([]);
+  const [contextLengthFilter, setContextLengthFilter] = useState<string[]>([]);
   const [visibleColumns, setVisibleColumns] = useState<string[]>([
     'provider', 'model', 'overallScore', 'mcqScore', 'essayScore', 'reasoning', 'context'
   ]);

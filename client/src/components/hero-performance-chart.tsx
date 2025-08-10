@@ -68,9 +68,7 @@ const CleanTooltip = ({ active, payload, label }: any) => {
     return (
       <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200/80 dark:border-gray-700/80 rounded-xl p-3 shadow-xl">
         <div className="flex items-center gap-2 mb-2">
-          <div className="w-5 h-5">
-            <ProviderLogo modelName={data.model} />
-          </div>
+          <ProviderLogo modelName={data.model} size="sm" />
           <p className="font-semibold text-gray-900 dark:text-white text-sm">{getDisplayName(data.model)}</p>
         </div>
         <div className="space-y-1 text-xs">

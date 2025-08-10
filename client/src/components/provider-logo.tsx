@@ -25,9 +25,14 @@ export function ProviderLogo({ modelName, size = "md", showName = false, classNa
 
   const Logo = provider.logo;
 
+  // Helper function to determine if logo should be inverted in dark mode
+  const getDarkModeLogoClass = (providerName: string): string => {
+    const darkLogos = ['Writer', 'xAI', 'Anthropic', 'OpenAI'];
+    return darkLogos.includes(providerName) ? 'dark:invert dark:brightness-0' : '';
+  };
+
   const logoProps = {
-    className: `${sizeClasses[size]} flex-shrink-0 ${className || ''}`,
-    style: { color: provider.color },
+    className: `${sizeClasses[size]} flex-shrink-0 ${getDarkModeLogoClass(provider.name)} ${className || ''}`,
   };
 
   return (

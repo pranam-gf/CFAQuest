@@ -5,6 +5,8 @@ import { processChartData } from "@/lib/data-processing";
 import { motion } from 'framer-motion';
 
 import { getProviderInfo } from "@/lib/provider-mapping";
+import { getDisplayName } from "@/lib/model-display-names";
+import { ChartTooltip, ScatterChartTooltip } from "@/components/chart-tooltip";
 
 // Helper function to get consistent provider colors
 const getProviderColor = (provider: string) => {
@@ -37,55 +39,17 @@ const getStrategyDisplayName = (strategy: string) => {
   return displayNames[strategy] || strategy;
 };
 
-// Clean tooltip for both light and dark modes
-const CleanTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200/80 dark:border-gray-700/80 rounded-xl p-3 shadow-xl">
-        <p className="font-medium text-gray-900 dark:text-white mb-2 text-sm">{label}</p>
-        <div className="space-y-1">
-          {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-2.5 h-2.5 rounded-full" 
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="text-xs text-gray-700 dark:text-gray-300">
-                  {entry.name || entry.dataKey}
-                  {entry.payload && entry.payload.model && (
-                    <span className="ml-2 inline-flex items-center">
-                      {getProviderInfo(entry.payload.model).logo && (
-                    <span className="w-4 h-4 mr-1 flex-shrink-0">
-                      {(() => {
-                        const LogoComponent = getProviderInfo(entry.payload.model).logo;
-                        return typeof LogoComponent === 'function'
-                          ? <LogoComponent className="w-full h-full" />
-                          : LogoComponent;
-                      })()}
-                    </span>
-                  )}
-                    </span>
-                  )}
-                </span>
-              </div>
-              <span className="text-xs font-medium text-gray-900 dark:text-white">
-                {typeof entry.value === 'number' ? entry.value.toFixed(1) : entry.value}
-                {entry.unit || (entry.dataKey === 'accuracy' ? '%' : '')}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  return null;
-};
-
 // Specific tooltip for pie charts that handles the data structure differently
 const PieTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0];
+    
+    // Helper function to determine if logo should be inverted in dark mode
+    const getDarkModeLogoClass = (providerName: string): string => {
+      const darkLogos = ['Writer', 'xAI', 'Anthropic', 'OpenAI'];
+      return darkLogos.includes(providerName) ? 'dark:invert dark:brightness-0' : '';
+    };
+    
     return (
       <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200/80 dark:border-gray-700/80 rounded-xl p-3 shadow-xl">
         <div className="flex items-center justify-between gap-3">
@@ -97,11 +61,12 @@ const PieTooltip = ({ active, payload }: any) => {
             <span className="text-xs text-gray-700 dark:text-gray-300">
               {data.payload.name}
               {getProviderInfo(data.payload.name).logo && (
-                <span className="ml-2 inline-flex items-center">
+                <span className="ml-2 inline-flex items-center w-4 h-4 flex-shrink-0">
                   {(() => {
                      const LogoComponent = getProviderInfo(data.payload.name).logo;
+                     const darkModeClass = getDarkModeLogoClass(data.payload.name);
                      return typeof LogoComponent === 'function'
-                       ? <LogoComponent className="w-4 h-4 mr-1 flex-shrink-0" />
+                       ? <LogoComponent className={`w-4 h-4 flex-shrink-0 ${darkModeClass}`} style={{ width: '16px', height: '16px' }} />
                        : LogoComponent;
                    })()}
                 </span>
@@ -117,6 +82,7 @@ const PieTooltip = ({ active, payload }: any) => {
   }
   return null;
 };
+
 
 export function PerformanceCharts() {
   const { data: mcqData = [] } = useQuery<McqEvaluation[]>({
@@ -228,7 +194,7 @@ export function PerformanceCharts() {
               axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
             />
-            <Tooltip content={<CleanTooltip />} />
+            <Tooltip content={<ChartTooltip />} />
             <Bar 
               dataKey="accuracy" 
               fill="url(#mcqBarGradient)" 
@@ -274,7 +240,7 @@ export function PerformanceCharts() {
               axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
             />
-            <Tooltip content={<CleanTooltip />} />
+            <Tooltip content={<ChartTooltip />} />
             <Bar 
               dataKey="accuracy" 
               fill="url(#essayBarGradient)" 
@@ -320,7 +286,7 @@ export function PerformanceCharts() {
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip content={<CleanTooltip />} />
+              <Tooltip content={<ChartTooltip />} />
             </PieChart>
           </ResponsiveContainer>
           
@@ -402,6 +368,7 @@ export function PerformanceCharts() {
           <ScatterChart data={chartData.costPerformanceData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
             <CartesianGrid strokeDasharray="2 2" stroke="currentColor" opacity={0.1} className="text-gray-400" />
             <XAxis 
+              type="number"
               dataKey="x" 
               name="Cost" 
               unit="$" 
@@ -409,8 +376,10 @@ export function PerformanceCharts() {
               className="text-gray-600 dark:text-gray-400"
               axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
+              tickFormatter={(value) => `$${value.toFixed(4)}`}
             />
             <YAxis 
+              type="number"
               dataKey="y" 
               name="Accuracy" 
               unit="%" 
@@ -420,7 +389,7 @@ export function PerformanceCharts() {
               axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
             />
-            <Tooltip content={<CleanTooltip />} />
+            <Tooltip content={<ScatterChartTooltip />} />
             <Scatter 
               dataKey="y" 
               fill="#3B82F6"

@@ -4,6 +4,7 @@ import { McqEvaluation, EssayEvaluation } from "@/types/models";
 import { motion } from 'framer-motion';
 import { getProviderInfo } from "@/lib/provider-mapping";
 import { getDisplayName } from "@/lib/model-display-names";
+import { ChartTooltip, ScatterChartTooltip } from "@/components/chart-tooltip";
 
 // Get model pricing from compare-page.tsx pricing map
 function getModelPricing(modelId: string) {
@@ -81,39 +82,6 @@ const getProviderColor = (provider: string) => {
   return colors[provider] || '#6B7280';
 };
 
-// Clean tooltip for charts
-const CleanTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200/80 dark:border-gray-700/80 rounded-xl p-3 shadow-xl">
-        <p className="font-medium text-gray-900 dark:text-white mb-2 text-sm">{label}</p>
-        <div className="space-y-1">
-          {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-2.5 h-2.5 rounded-full" 
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="text-xs text-gray-700 dark:text-gray-300">
-                  {entry.name || entry.dataKey}
-                </span>
-              </div>
-              <span className="text-xs font-medium text-gray-900 dark:text-white">
-                {typeof entry.value === 'number' ? (
-                  entry.dataKey === 'accuracy' ? `${entry.value.toFixed(1)}%` :
-                  entry.dataKey?.includes('Price') ? `$${entry.value.toFixed(2)}` :
-                  entry.value.toFixed(2)
-                ) : entry.value}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  return null;
-};
 
 export function PricingCharts() {
   const { data: mcqData = [], isLoading: isLoadingMcq } = useQuery<McqEvaluation[]>({
@@ -168,7 +136,8 @@ export function PricingCharts() {
   const priceVsPerformance = uniqueModels.map(model => ({
     x: model!.avgPrice,
     y: model!.accuracy,
-    model: model!.model,
+    model: model!.model, // Display name for tooltip
+    fullModel: model!.fullModel, // Original model ID for logo lookup
     provider: model!.provider,
     totalCost: model!.totalCost,
     color: getProviderColor(model!.provider)
@@ -191,25 +160,31 @@ export function PricingCharts() {
     return acc;
   }, {});
 
-  const providerAvgData = Object.values(providerPricing).map((provider: any) => ({
-    provider: provider.provider,
-    avgPrice: provider.totalPrice / provider.count,
-    avgAccuracy: provider.accuracy / provider.count,
-    color: getProviderColor(provider.provider)
-  }));
+  const providerAvgData = Object.values(providerPricing).map((provider: any) => {
+    // Find a representative model for this provider to get the logo
+    const representativeModel = uniqueModels.find(model => model?.provider === provider.provider);
+    return {
+      provider: provider.provider,
+      avgPrice: provider.totalPrice / provider.count,
+      avgAccuracy: provider.accuracy / provider.count,
+      color: getProviderColor(provider.provider),
+      fullModel: representativeModel?.fullModel || provider.provider.toLowerCase() // fallback
+    };
+  });
 
   // Input vs Output pricing comparison
   const pricingComparisonData = uniqueModels.slice(0, 10).map(model => ({
     model: model!.model.length > 15 ? model!.model.substring(0, 15) + '...' : model!.model,
     inputPrice: model!.inputPrice,
     outputPrice: model!.outputPrice,
-    fullModel: model!.model
+    fullModel: model!.fullModel // Use original model ID for logo lookup
   }));
 
   // Cost efficiency (performance per dollar)
   const costEfficiencyData = uniqueModels
     .map(model => ({
       model: model!.model,
+      fullModel: model!.fullModel, // Add original model ID for logo lookup
       efficiency: model!.accuracy / model!.avgPrice, // accuracy per dollar
       accuracy: model!.accuracy,
       price: model!.avgPrice,
@@ -257,7 +232,7 @@ export function PricingCharts() {
               axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
             />
-            <Tooltip content={<CleanTooltip />} />
+            <Tooltip content={<ScatterChartTooltip />} />
             <Scatter 
               dataKey="y" 
               fill="#10B981"
@@ -312,7 +287,7 @@ export function PricingCharts() {
                 axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               />
-              <Tooltip content={<CleanTooltip />} />
+              <Tooltip content={<ChartTooltip />} />
               <Bar 
                 dataKey="avgPrice" 
                 fill="url(#providerPricingGradient)" 
@@ -362,7 +337,7 @@ export function PricingCharts() {
                 axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               />
-              <Tooltip content={<CleanTooltip />} />
+              <Tooltip content={<ChartTooltip />} />
               <Bar 
                 dataKey="efficiency" 
                 fill="url(#efficiencyGradient)" 
@@ -407,7 +382,7 @@ export function PricingCharts() {
               axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
             />
-            <Tooltip content={<CleanTooltip />} />
+            <Tooltip content={<ChartTooltip />} />
             <Bar dataKey="inputPrice" fill="#3B82F6" name="Input Price" radius={[2, 2, 0, 0]} />
             <Bar dataKey="outputPrice" fill="#10B981" name="Output Price" radius={[2, 2, 0, 0]} />
           </BarChart>

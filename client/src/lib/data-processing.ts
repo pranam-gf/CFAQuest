@@ -17,7 +17,9 @@ export function processChartData(mcqData: McqEvaluation[], essayData: EssayEvalu
   const costPerformanceData = mcqData.map(d => ({
     x: d.totalCost,
     y: d.accuracy * 100,
-    model: d.model
+    model: d.model,
+    fullModel: d.model,
+    modelType: d.modelType
   }));
 
   // Calculate strategy performance

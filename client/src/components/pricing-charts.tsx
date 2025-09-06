@@ -140,7 +140,8 @@ export function PricingCharts() {
     fullModel: model!.fullModel, // Original model ID for logo lookup
     provider: model!.provider,
     totalCost: model!.totalCost,
-    color: getProviderColor(model!.provider)
+    color: getProviderColor(model!.provider),
+    modelType: model!.modelType
   }));
 
   // Provider average pricing
@@ -177,7 +178,8 @@ export function PricingCharts() {
     model: model!.model.length > 15 ? model!.model.substring(0, 15) + '...' : model!.model,
     inputPrice: model!.inputPrice,
     outputPrice: model!.outputPrice,
-    fullModel: model!.fullModel // Use original model ID for logo lookup
+    fullModel: model!.fullModel, // Use original model ID for logo lookup
+    modelType: model!.modelType
   }));
 
   // Cost efficiency (performance per dollar)
@@ -188,7 +190,8 @@ export function PricingCharts() {
       efficiency: model!.accuracy / model!.avgPrice, // accuracy per dollar
       accuracy: model!.accuracy,
       price: model!.avgPrice,
-      provider: model!.provider
+      provider: model!.provider,
+      modelType: model!.modelType
     }))
     .sort((a, b) => b.efficiency - a.efficiency)
     .slice(0, 12);

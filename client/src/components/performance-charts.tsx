@@ -41,46 +41,49 @@ const getStrategyDisplayName = (strategy: string) => {
 
 // Specific tooltip for pie charts that handles the data structure differently
 const PieTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    const data = payload[0];
-    
-    // Helper function to determine if logo should be inverted in dark mode
-    const getDarkModeLogoClass = (providerName: string): string => {
-      const darkLogos = ['Writer', 'xAI', 'Anthropic', 'OpenAI'];
-      return darkLogos.includes(providerName) ? 'dark:invert dark:brightness-0' : '';
-    };
-    
-    return (
-      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200/80 dark:border-gray-700/80 rounded-xl p-3 shadow-xl">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div 
-              className="w-2.5 h-2.5 rounded-full" 
-              style={{ backgroundColor: data.payload.color }}
-            />
-            <span className="text-xs text-gray-700 dark:text-gray-300">
-              {data.payload.name}
-              {getProviderInfo(data.payload.name).logo && (
-                <span className="ml-2 inline-flex items-center w-4 h-4 flex-shrink-0">
-                  {(() => {
-                     const LogoComponent = getProviderInfo(data.payload.name).logo;
-                     const darkModeClass = getDarkModeLogoClass(data.payload.name);
-                     return typeof LogoComponent === 'function'
-                       ? <LogoComponent className={`w-4 h-4 flex-shrink-0 ${darkModeClass}`} style={{ width: '16px', height: '16px' }} />
-                       : LogoComponent;
-                   })()}
-                </span>
-              )}
+  if (!active || !payload || !payload.length) {
+    return null;
+  }
+
+  const data = payload[0];
+  const providerName = data.payload.name;
+  const providerInfo = data.payload.providerInfo;
+  
+  // Helper function to determine if logo should be inverted in dark mode
+  const getDarkModeLogoClass = (providerName: string): string => {
+    const darkLogos = ['Writer', 'xAI', 'Anthropic', 'OpenAI'];
+    return darkLogos.includes(providerName) ? 'dark:invert dark:brightness-0' : '';
+  };
+
+  const LogoComponent = providerInfo.logo;
+  const darkModeClass = getDarkModeLogoClass(providerName);
+  
+  return (
+    <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200/80 dark:border-gray-700/80 rounded-xl p-3 shadow-xl">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div 
+            className="w-2.5 h-2.5 rounded-full" 
+            style={{ backgroundColor: data.payload.color }}
+          />
+          {LogoComponent && (
+            <span className="inline-flex items-center w-4 h-4 flex-shrink-0">
+              <LogoComponent 
+                className={`w-4 h-4 flex-shrink-0 ${darkModeClass}`} 
+                style={{ width: '16px', height: '16px' }} 
+              />
             </span>
-          </div>
-          <span className="text-xs font-medium text-gray-900 dark:text-white">
-            {data.payload.value} models
+          )}
+          <span className="text-xs text-gray-700 dark:text-gray-300">
+            {providerName}
           </span>
         </div>
+        <span className="text-xs font-medium text-gray-900 dark:text-white">
+          {data.payload.value} models
+        </span>
       </div>
-    );
-  }
-  return null;
+    </div>
+  );
 };
 
 
@@ -97,19 +100,21 @@ export function PerformanceCharts() {
 
   // MCQ Model Type Data
   const mcqModelTypeData = [
-    { name: "Reasoning Models", accuracy: chartData.modelTypeAccuracy.reasoning },
-    { name: "Non-Reasoning Models", accuracy: chartData.modelTypeAccuracy.nonReasoning },
+    { name: "Reasoning Models", accuracy: chartData.modelTypeAccuracy.reasoning, modelType: "Reasoning" },
+    { name: "Non-Reasoning Models", accuracy: chartData.modelTypeAccuracy.nonReasoning, modelType: "Non-Reasoning" },
   ];
 
   // Essay Model Type Data (calculate from essay data)
   const essayModelTypeData = [
     { 
       name: "Reasoning Models", 
-      accuracy: essayData.filter(e => e.modelType === "Reasoning").reduce((acc, e, _, arr) => acc + (e.avgSelfGrade / arr.length), 0) * 25 // Convert to percentage scale
+      accuracy: essayData.filter(e => e.modelType === "Reasoning").reduce((acc, e, _, arr) => acc + (e.avgSelfGrade / arr.length), 0) * 25, // Convert to percentage scale
+      modelType: "Reasoning"
     },
     { 
       name: "Non-Reasoning Models", 
-      accuracy: essayData.filter(e => e.modelType !== "Reasoning").reduce((acc, e, _, arr) => acc + (e.avgSelfGrade / arr.length), 0) * 25 // Convert to percentage scale
+      accuracy: essayData.filter(e => e.modelType !== "Reasoning").reduce((acc, e, _, arr) => acc + (e.avgSelfGrade / arr.length), 0) * 25, // Convert to percentage scale
+      modelType: "Non-Reasoning"
     },
   ];
 
@@ -131,11 +136,18 @@ export function PerformanceCharts() {
     return acc;
   }, {});
   
-  const modelDistributionData = Object.entries(providerData).map(([provider, count]) => ({
-    name: provider,
-    value: count as number,
-    color: getProviderColor(provider)
-  }));
+  const modelDistributionData = Object.entries(providerData).map(([provider, count]) => {
+    // Find a representative model for this provider to get the full provider info
+    const representativeModel = uniqueModels.find(m => m.provider === provider);
+    const providerInfo = representativeModel ? getProviderInfo(representativeModel.model) : { name: provider, logo: null };
+    
+    return {
+      name: provider,
+      value: count as number,
+      color: getProviderColor(provider),
+      providerInfo: providerInfo
+    };
+  });
 
   // Strategy Performance with proper naming
   const strategyData = chartData.strategyPerformance.map(strategy => ({

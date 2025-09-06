@@ -8,6 +8,17 @@ interface ChartTooltipProps {
   label?: string;
 }
 
+// Helper component for model type symbols
+function ModelTypeSymbol({ modelType }: { modelType?: string }) {
+  if (!modelType || modelType !== 'Reasoning') return null;
+  
+  return (
+    <span className="text-xs" title={modelType}>
+      🧠
+    </span>
+  );
+}
+
 export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload || !payload.length) {
     return null;
@@ -35,10 +46,11 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
 
   const modelName = getModelName();
   const providerName = getProviderName();
-  const displayName = modelName ? getDisplayName(modelName) : (data.provider || label);
+  const isAggregateModelTypeData = data.name && (data.name.includes('Models') || data.name.includes('Reasoning') || data.name.includes('Non-Reasoning'));
+  const displayName = isAggregateModelTypeData ? data.name : (modelName ? getDisplayName(modelName) : (data.provider || label));
 
-  // Determine if we should show provider logo
-  const shouldShowLogo = modelName || (providerName && providerName !== 'Unknown');
+  // Determine if we should show provider logo (but not for aggregate model type data)
+  const shouldShowLogo = !isAggregateModelTypeData && (modelName || (providerName && providerName !== 'Unknown'));
   const logoModel = data.fullModel || modelName || data.provider || label || '';
   
   // Helper function to determine if logo should be inverted in dark mode
@@ -69,6 +81,7 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
             <span className="text-xs font-medium text-gray-900 dark:text-white">
               {displayName}
             </span>
+            <ModelTypeSymbol modelType={data.modelType} />
           </div>
         )}
         
@@ -109,8 +122,13 @@ function formatValue(value: any, dataKey?: string, name?: string): string {
     return `${value.toFixed(1)}%`;
   }
   
+  // Efficiency values (accuracy per dollar - no currency symbol)
+  if (key.includes('efficiency')) {
+    return value.toFixed(3);
+  }
+  
   // Price/cost values
-  if (key.includes('price') || key.includes('cost') || key.includes('efficiency') || key === 'x') {
+  if (key.includes('price') || key.includes('cost') || key === 'x') {
     return `$${value.toFixed(2)}`;
   }
   
@@ -125,7 +143,7 @@ export function ScatterChartTooltip({ active, payload }: ChartTooltipProps) {
   }
 
   const data = payload[0].payload;
-  const modelName = data.model || data.fullModel;
+  const modelName = data.fullModel || data.model;
   const displayName = modelName ? getDisplayName(modelName) : 'Unknown Model';
 
   // Helper function to determine if logo should be inverted in dark mode
@@ -153,6 +171,7 @@ export function ScatterChartTooltip({ active, payload }: ChartTooltipProps) {
           <span className="text-xs font-medium text-gray-900 dark:text-white">
             {displayName}
           </span>
+          <ModelTypeSymbol modelType={data.modelType} />
         </div>
         
         <div className="space-y-1">

@@ -337,6 +337,13 @@ export default function ComparePage() {
         contextLength: modelData?.contextLength,
         pricing: getModelPricing(modelName) || undefined,
       };
+    })
+    .sort((a, b) => {
+      // Sort by provider first, then by model name
+      if (a.provider !== b.provider) {
+        return a.provider.localeCompare(b.provider);
+      }
+      return getDisplayName(a.name).localeCompare(getDisplayName(b.name));
     });
 
   const handleSelectModel = (modelId: string) => {

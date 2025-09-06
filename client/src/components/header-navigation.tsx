@@ -51,8 +51,13 @@ export function HeaderNavigation() {
 
   useEffect(() => {
     const preloadRoutes = () => {
-      import("@/pages/dashboard");
-      import("@/pages/compare-page");
+      const routes = [
+        import("@/pages/dashboard"),
+        import("@/pages/compare-page"),
+        import("@/pages/overall")
+      ];
+      Promise.all(routes).then(() => {
+      });
     };
     
     preloadRoutes();

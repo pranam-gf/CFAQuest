@@ -214,9 +214,11 @@ export function PricingCharts() {
           <ScatterChart data={priceVsPerformance} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
             <CartesianGrid strokeDasharray="2 2" stroke="currentColor" opacity={0.1} className="text-gray-400" />
             <XAxis 
+              type="number"
               dataKey="x" 
               name="Average Price" 
               unit="$" 
+              domain={[0, 'dataMax']}
               tick={{ fontSize: 11, fill: 'currentColor' }}
               className="text-gray-600 dark:text-gray-400"
               axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}

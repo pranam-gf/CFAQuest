@@ -187,225 +187,228 @@ export function HeroPerformanceChart() {
     setHoveredPoint(null);
   };
 
-  if (chartData.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64 bg-white/30 dark:bg-white/5 backdrop-blur-md rounded-3xl border border-white/40 dark:border-white/10">
-        <div className="text-slate-600 dark:text-slate-400">Loading performance data...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="relative w-full overflow-x-auto">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="min-w-fit flex justify-center"
-      >
-        <svg ref={svgRef} width={width} height={height} className="rounded-xl bg-transparent">
-          <g className="grid">
-            {xTicks.map(tick => (
-              <line key={`x-grid-${tick}`} x1={margin.left + xScale(tick)} y1={margin.top} x2={margin.left + xScale(tick)} y2={margin.top + chartHeight} stroke="currentColor" strokeOpacity={0.1} className="text-slate-400 dark:text-slate-600" />
-            ))}
-            {yTicks.map(tick => (
-              <line key={`y-grid-${tick}`} x1={margin.left} y1={margin.top + yScale(tick)} x2={margin.left + chartWidth} y2={margin.top + yScale(tick)} stroke="currentColor" strokeOpacity={0.1} className="text-slate-400 dark:text-slate-600" />
-            ))}
-          </g>
-
-          <g className="axes">
-            <line x1={margin.left} y1={margin.top + chartHeight} x2={margin.left + chartWidth} y2={margin.top + chartHeight} stroke="currentColor" className="text-slate-500 dark:text-slate-400" strokeWidth={1.5} />
-            <line x1={margin.left} y1={margin.top} x2={margin.left} y2={margin.top + chartHeight} stroke="currentColor" className="text-slate-500 dark:text-slate-400" strokeWidth={1.5} />
-          </g>
-
-          <g className="axis-labels">
-            {xTicks.map(tick => (
-              <g key={`x-tick-${tick}`}>
-                <line
-                  x1={margin.left + xScale(tick)}
-                  y1={margin.top + chartHeight}
-                  x2={margin.left + xScale(tick)}
-                  y2={margin.top + chartHeight + 6}
-                  stroke="currentColor"
-                  className="text-slate-600 dark:text-slate-300"
-                  strokeWidth={1}
-                />
-                <text 
-                  x={margin.left + xScale(tick)} 
-                  y={margin.top + chartHeight + 20} 
-                  textAnchor="middle" 
-                  className="text-xs fill-slate-600 dark:fill-slate-400"
-                >
-                  {tick}
-                </text>
+    <div className="relative w-full">
+      {chartData.length === 0 ? (
+        <div
+          className="flex items-center justify-center bg-white/30 dark:bg-white/5 backdrop-blur-md rounded-3xl border border-white/40 dark:border-white/10 w-full"
+          style={{ aspectRatio: `${width} / ${height}` }}
+        >
+          <div className="text-slate-600 dark:text-slate-400">Loading performance data...</div>
+        </div>
+      ) : (
+        <>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="min-w-fit flex justify-center"
+          >
+            <svg ref={svgRef} width={width} height={height} className="rounded-xl bg-transparent">
+              <g className="grid">
+                {xTicks.map(tick => (
+                  <line key={`x-grid-${tick}`} x1={margin.left + xScale(tick)} y1={margin.top} x2={margin.left + xScale(tick)} y2={margin.top + chartHeight} stroke="currentColor" strokeOpacity={0.1} className="text-slate-400 dark:text-slate-600" />
+                ))}
+                {yTicks.map(tick => (
+                  <line key={`y-grid-${tick}`} x1={margin.left} y1={margin.top + yScale(tick)} x2={margin.left + chartWidth} y2={margin.top + yScale(tick)} stroke="currentColor" strokeOpacity={0.1} className="text-slate-400 dark:text-slate-600" />
+                ))}
               </g>
-            ))}
-            {yTicks.map(tick => (
-              <g key={`y-tick-${tick}`}>
-                <line
-                  x1={margin.left - 6}
-                  y1={margin.top + yScale(tick)}
-                  x2={margin.left}
-                  y2={margin.top + yScale(tick)}
-                  stroke="currentColor"
-                  className="text-slate-600 dark:text-slate-300"
-                  strokeWidth={1}
-                />
-                <text 
-                  x={margin.left - 5} 
-                  y={margin.top + yScale(tick)} 
-                  textAnchor="end" 
-                  dominantBaseline="middle" 
-                  className="text-xs fill-slate-600 dark:fill-slate-400"
-                >
-                  {tick}%
-                </text>
+
+              <g className="axes">
+                <line x1={margin.left} y1={margin.top + chartHeight} x2={margin.left + chartWidth} y2={margin.top + chartHeight} stroke="currentColor" className="text-slate-500 dark:text-slate-400" strokeWidth={1.5} />
+                <line x1={margin.left} y1={margin.top} x2={margin.left} y2={margin.top + chartHeight} stroke="currentColor" className="text-slate-500 dark:text-slate-400" strokeWidth={1.5} />
               </g>
-            ))}
-            <text x={margin.left + chartWidth / 2} y={margin.top + chartHeight + 50} textAnchor="middle" className="text-sm font-medium fill-slate-700 dark:fill-slate-300">Essay Evaluation Score</text>
-            <text x={-margin.top - chartHeight / 2} y={12} textAnchor="middle" transform="rotate(-90)" className="text-sm font-medium fill-slate-700 dark:fill-slate-300">MCQ Accuracy (%)</text>
-          </g>
 
-          {/* Connecting lines for reasoning models */}
-          <g className="reasoning-line">
-            {reasoningModels.length > 1 && (
-              <path
-                d={reasoningModels.map((point, index) => 
-                  `${index === 0 ? 'M' : 'L'} ${margin.left + xScale(point.essayScore)} ${margin.top + yScale(point.mcqScore)}`
-                ).join(' ')}
-                stroke="rgb(16, 185, 129)"
-                strokeWidth={2}
-                fill="none"
-                strokeOpacity={0.6}
-                strokeDasharray="4,4"
-              />
-            )}
-          </g>
-
-          {/* Connecting lines for non-reasoning models */}
-          <g className="non-reasoning-line">
-            {nonReasoningModels.length > 1 && (
-              <path
-                d={nonReasoningModels.map((point, index) => 
-                  `${index === 0 ? 'M' : 'L'} ${margin.left + xScale(point.essayScore)} ${margin.top + yScale(point.mcqScore)}`
-                ).join(' ')}
-                stroke="rgb(59, 130, 246)"
-                strokeWidth={2}
-                fill="none"
-                strokeOpacity={0.6}
-                strokeDasharray="8,4"
-              />
-            )}
-          </g>
-
-          <g className="data-points">
-            {chartData.map((point, index) => (
-              <motion.g
-                key={point.model}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: index * 0.02 }}
-              >
-                {hoveredPoint?.model === point.model && (
-                  <circle cx={margin.left + xScale(point.essayScore)} cy={margin.top + yScale(point.mcqScore)} r={20} fill="currentColor" className="text-blue-400 dark:text-blue-300" fillOpacity={0.2} />
-                )}
-                
-                {/* Model name label - alternating top/bottom positions */}
-                {(() => {
-                  const isReasoning = point.modelType === 'Reasoning';
-                  const labelPosition = isReasoning 
-                    ? reasoningLabelPositions.get(point.model) 
-                    : nonReasoningLabelPositions.get(point.model);
-                  
-                  if (!labelPosition) return null;
-                  
-                  const yOffset = labelPosition === 'top' ? -25 : 35;
-                  
-                  return (
-                    <text
-                      x={margin.left + xScale(point.essayScore)}
-                      y={margin.top + yScale(point.mcqScore) + yOffset}
-                      textAnchor="middle"
-                      className="text-xs font-medium fill-slate-700 dark:fill-slate-300 pointer-events-none"
-                      style={{ fontSize: '10px' }}
+              <g className="axis-labels">
+                {xTicks.map(tick => (
+                  <g key={`x-tick-${tick}`}>
+                    <line
+                      x1={margin.left + xScale(tick)}
+                      y1={margin.top + chartHeight}
+                      x2={margin.left + xScale(tick)}
+                      y2={margin.top + chartHeight + 6}
+                      stroke="currentColor"
+                      className="text-slate-600 dark:text-slate-300"
+                      strokeWidth={1}
+                    />
+                    <text 
+                      x={margin.left + xScale(tick)} 
+                      y={margin.top + chartHeight + 20} 
+                      textAnchor="middle" 
+                      className="text-xs fill-slate-600 dark:fill-slate-400"
                     >
-                      {getShortDisplayName(point.model)}
+                      {tick}
                     </text>
-                  );
-                })()}
+                  </g>
+                ))}
+                {yTicks.map(tick => (
+                  <g key={`y-tick-${tick}`}>
+                    <line
+                      x1={margin.left - 6}
+                      y1={margin.top + yScale(tick)}
+                      x2={margin.left}
+                      y2={margin.top + yScale(tick)}
+                      stroke="currentColor"
+                      className="text-slate-600 dark:text-slate-300"
+                      strokeWidth={1}
+                    />
+                    <text 
+                      x={margin.left - 5} 
+                      y={margin.top + yScale(tick)} 
+                      textAnchor="end" 
+                      dominantBaseline="middle" 
+                      className="text-xs fill-slate-600 dark:fill-slate-400"
+                    >
+                      {tick}%
+                    </text>
+                  </g>
+                ))}
+                <text x={margin.left + chartWidth / 2} y={margin.top + chartHeight + 50} textAnchor="middle" className="text-sm font-medium fill-slate-700 dark:fill-slate-300">Essay Evaluation Score</text>
+                <text x={-margin.top - chartHeight / 2} y={12} textAnchor="middle" transform="rotate(-90)" className="text-sm font-medium fill-slate-700 dark:fill-slate-300">MCQ Accuracy (%)</text>
+              </g>
+
+              {/* Connecting lines for reasoning models */}
+              <g className="reasoning-line">
+                {reasoningModels.length > 1 && (
+                  <path
+                    d={reasoningModels.map((point, index) => 
+                      `${index === 0 ? 'M' : 'L'} ${margin.left + xScale(point.essayScore)} ${margin.top + yScale(point.mcqScore)}`
+                    ).join(' ')}
+                    stroke="rgb(16, 185, 129)"
+                    strokeWidth={2}
+                    fill="none"
+                    strokeOpacity={0.6}
+                    strokeDasharray="4,4"
+                  />
+                )}
+              </g>
+
+              {/* Connecting lines for non-reasoning models */}
+              <g className="non-reasoning-line">
+                {nonReasoningModels.length > 1 && (
+                  <path
+                    d={nonReasoningModels.map((point, index) => 
+                      `${index === 0 ? 'M' : 'L'} ${margin.left + xScale(point.essayScore)} ${margin.top + yScale(point.mcqScore)}`
+                    ).join(' ')}
+                    stroke="rgb(59, 130, 246)"
+                    strokeWidth={2}
+                    fill="none"
+                    strokeOpacity={0.6}
+                    strokeDasharray="8,4"
+                  />
+                )}
+              </g>
+
+              <g className="data-points">
+                {chartData.map((point, index) => (
+                  <motion.g
+                    key={point.model}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: index * 0.02 }}
+                  >
+                    {hoveredPoint?.model === point.model && (
+                      <circle cx={margin.left + xScale(point.essayScore)} cy={margin.top + yScale(point.mcqScore)} r={20} fill="currentColor" className="text-blue-400 dark:text-blue-300" fillOpacity={0.2} />
+                    )}
+                    
+                    {/* Model name label - alternating top/bottom positions */}
+                    {(() => {
+                      const isReasoning = point.modelType === 'Reasoning';
+                      const labelPosition = isReasoning 
+                        ? reasoningLabelPositions.get(point.model) 
+                        : nonReasoningLabelPositions.get(point.model);
+                      
+                      if (!labelPosition) return null;
+                      
+                      const yOffset = labelPosition === 'top' ? -25 : 35;
+                      
+                      return (
+                        <text
+                          x={margin.left + xScale(point.essayScore)}
+                          y={margin.top + yScale(point.mcqScore) + yOffset}
+                          textAnchor="middle"
+                          className="text-xs font-medium fill-slate-700 dark:fill-slate-300 pointer-events-none"
+                          style={{ fontSize: '10px' }}
+                        >
+                          {getShortDisplayName(point.model)}
+                        </text>
+                      );
+                    })()}
+                    
+                    <foreignObject x={margin.left + xScale(point.essayScore) - 16} y={margin.top + yScale(point.mcqScore) - 16} width={32} height={32} className="cursor-pointer" onMouseMove={(e) => handleMouseMove(e, point)} onMouseLeave={handleMouseLeave}>
+                      <div className={`w-8 h-8 transition-all duration-200 ${hoveredPoint?.model === point.model ? 'scale-125 drop-shadow-lg' : 'hover:scale-110'} overflow-visible flex items-center justify-center`}>
+                        <ProviderLogo modelName={point.model} className="w-7 h-7" />
+                      </div>
+                    </foreignObject>
+                  </motion.g>
+                ))}
+              </g>
+
+              {/* Minimal transparent legend - positioned near x-axis value 3.5 */}
+              <g className="legend" opacity="0.8">
+                <rect
+                  x={margin.left + xScale(3.5) - 90}
+                  y={margin.top + chartHeight - 90}
+                  width={180}
+                  height={35}
+                  fill="white"
+                  fillOpacity="0.1"
+                  stroke="none"
+                  rx={4}
+                />
                 
-                <foreignObject x={margin.left + xScale(point.essayScore) - 16} y={margin.top + yScale(point.mcqScore) - 16} width={32} height={32} className="cursor-pointer" onMouseMove={(e) => handleMouseMove(e, point)} onMouseLeave={handleMouseLeave}>
-                  <div className={`w-8 h-8 transition-all duration-200 ${hoveredPoint?.model === point.model ? 'scale-125 drop-shadow-lg' : 'hover:scale-110'} overflow-visible flex items-center justify-center`}>
-                    <ProviderLogo modelName={point.model} className="w-7 h-7" />
-                  </div>
-                </foreignObject>
-              </motion.g>
-            ))}
-          </g>
+                {/* Reasoning Models Legend */}
+                <line
+                  x1={margin.left + xScale(3.5) - 75}
+                  y1={margin.top + chartHeight - 80}
+                  x2={margin.left + xScale(3.5) - 55}
+                  y2={margin.top + chartHeight - 80}
+                  stroke="rgb(16, 185, 129)"
+                  strokeWidth={2}
+                  strokeDasharray="4,4"
+                  opacity="0.7"
+                />
+                <text
+                  x={margin.left + xScale(3.5) - 50}
+                  y={margin.top + chartHeight - 76}
+                  className="text-xs fill-slate-600 dark:fill-slate-400"
+                  dominantBaseline="middle"
+                  opacity="0.8"
+                >
+                  Reasoning Models
+                </text>
+                
+                {/* Non-Reasoning Models Legend */}
+                <line
+                  x1={margin.left + xScale(3.5) - 75}
+                  y1={margin.top + chartHeight - 65}
+                  x2={margin.left + xScale(3.5) - 55}
+                  y2={margin.top + chartHeight - 65}
+                  stroke="rgb(59, 130, 246)"
+                  strokeWidth={2}
+                  strokeDasharray="8,4"
+                  opacity="0.7"
+                />
+                <text
+                  x={margin.left + xScale(3.5) - 50}
+                  y={margin.top + chartHeight - 61}
+                  className="text-xs fill-slate-600 dark:fill-slate-400"
+                  dominantBaseline="middle"
+                  opacity="0.8"
+                >
+                  Non-Reasoning Models
+                </text>
+              </g>
+            </svg>
+          </motion.div>
 
-          {/* Minimal transparent legend - positioned near x-axis value 3.5 */}
-          <g className="legend" opacity="0.8">
-            <rect
-              x={margin.left + xScale(3.5) - 90}
-              y={margin.top + chartHeight - 90}
-              width={180}
-              height={35}
-              fill="white"
-              fillOpacity="0.1"
-              stroke="none"
-              rx={4}
-            />
-            
-            {/* Reasoning Models Legend */}
-            <line
-              x1={margin.left + xScale(3.5) - 75}
-              y1={margin.top + chartHeight - 80}
-              x2={margin.left + xScale(3.5) - 55}
-              y2={margin.top + chartHeight - 80}
-              stroke="rgb(16, 185, 129)"
-              strokeWidth={2}
-              strokeDasharray="4,4"
-              opacity="0.7"
-            />
-            <text
-              x={margin.left + xScale(3.5) - 50}
-              y={margin.top + chartHeight - 76}
-              className="text-xs fill-slate-600 dark:fill-slate-400"
-              dominantBaseline="middle"
-              opacity="0.8"
-            >
-              Reasoning Models
-            </text>
-            
-            {/* Non-Reasoning Models Legend */}
-            <line
-              x1={margin.left + xScale(3.5) - 75}
-              y1={margin.top + chartHeight - 65}
-              x2={margin.left + xScale(3.5) - 55}
-              y2={margin.top + chartHeight - 65}
-              stroke="rgb(59, 130, 246)"
-              strokeWidth={2}
-              strokeDasharray="8,4"
-              opacity="0.7"
-            />
-            <text
-              x={margin.left + xScale(3.5) - 50}
-              y={margin.top + chartHeight - 61}
-              className="text-xs fill-slate-600 dark:fill-slate-400"
-              dominantBaseline="middle"
-              opacity="0.8"
-            >
-              Non-Reasoning Models
-            </text>
-          </g>
-        </svg>
-
-        {hoveredPoint && (
-          <div className="absolute z-50 pointer-events-none" style={{ left: tooltipPosition.x + 8, top: tooltipPosition.y - 8, transform: tooltipPosition.x > width / 2 ? 'translateX(-100%)' : 'translateX(0)' }}>
-            <CleanTooltip active={true} payload={[{ payload: hoveredPoint }]} label={hoveredPoint.model} />
-          </div>
-        )}
-      </motion.div>
+          {hoveredPoint && (
+            <div className="absolute z-50 pointer-events-none" style={{ left: tooltipPosition.x + 8, top: tooltipPosition.y - 8, transform: tooltipPosition.x > width / 2 ? 'translateX(-100%)' : 'translateX(0)' }}>
+              <CleanTooltip active={true} payload={[{ payload: hoveredPoint }]} label={hoveredPoint.model} />
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

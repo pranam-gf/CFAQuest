@@ -63,6 +63,7 @@ export function LeaderboardTable<T extends Record<string, any>>({
 }: LeaderboardTableProps<T>) {
   const [internalSortKey, setInternalSortKey] = useState<string>("");
   const [internalSortDirection, setInternalSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [displayCount, setDisplayCount] = useState<number>(10);
 
   const currentSortKey = sortKey || internalSortKey;
   const currentSortDirection = sortDirection || internalSortDirection;
@@ -71,6 +72,14 @@ export function LeaderboardTable<T extends Record<string, any>>({
   const filteredColumns = visibleColumns 
     ? columns.filter(column => visibleColumns.includes(column.key))
     : columns;
+
+  // Get the data to display (first displayCount items)
+  const displayedData = data.slice(0, displayCount);
+  const hasMoreData = data.length > displayCount;
+
+  const handleShowMore = () => {
+    setDisplayCount(prev => prev + 10);
+  };
 
   const handleSort = (key: string) => {
     const newDirection = currentSortKey === key && currentSortDirection === 'desc' ? 'asc' : 'desc';
@@ -277,7 +286,7 @@ export function LeaderboardTable<T extends Record<string, any>>({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((row, index) => {
+          {displayedData.map((row, index) => {
             // Medal styling for top 3 positions
             const getMedalStyling = (position: number) => {
               switch (position) {
@@ -323,6 +332,17 @@ export function LeaderboardTable<T extends Record<string, any>>({
           })}
         </TableBody>
       </Table>
+      {hasMoreData && (
+        <div className="flex justify-center mt-6">
+          <Button 
+            onClick={handleShowMore}
+            variant="outline"
+            className="px-6 py-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+          >
+            Show More
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

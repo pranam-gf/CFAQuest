@@ -1,4 +1,4 @@
-import { ChartLine, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
@@ -31,7 +31,7 @@ const NavLink = ({ href, children }: NavLinkProps) => {
             boxShadow: "0px 0px 8px 0px #3b82f6",
           }}
           layoutId="underline"
-          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 30, delay: 0.05 }}
         />
       )}
     </Link>
@@ -68,7 +68,7 @@ export function HeaderNavigation() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="flex items-center space-x-3 transition-transform duration-200 hover:scale-105">
-            <img src="/logo.png" alt="CFA Arena Logo" className="w-10 h-10 dark:invert" />
+            <img src="/logo.png" alt="CFA Arena Logo" className="w-11 h-10" />
           </Link>
 
           <div className="flex items-center space-x-4">
@@ -77,6 +77,7 @@ export function HeaderNavigation() {
               <NavLink href="/">Overall</NavLink>
               <NavLink href="/compare">Compare</NavLink>
               <NavLink href="/dashboard">Dashboard</NavLink>
+              <NavLink href="/methodology">Methodology</NavLink>
             </nav>
             
             {/* Action Buttons */}
@@ -127,6 +128,13 @@ export function HeaderNavigation() {
                   className="block w-full text-left px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-white/50 dark:hover:bg-white/10 rounded-xl transition-colors"
                 >
                   Compare
+                </Link>
+                <Link 
+                  href="/methodology" 
+                  onClick={closeMobileMenu}
+                  className="block w-full text-left px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-white/50 dark:hover:bg-white/10 rounded-xl transition-colors"
+                >
+                  Methodology
                 </Link>
                 <Link 
                   href="/dashboard" 

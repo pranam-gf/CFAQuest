@@ -45,7 +45,7 @@ export function EssayLeaderboard({ viewFilter = "essay", onViewFilterChange }: E
   const [strategyFilter, setStrategyFilter] = useState("");
   const [providerFilter, setProviderFilter] = useState<string[]>(["all"]);
   const [contextLengthFilter, setContextLengthFilter] = useState("");
-  const [sortKey, setSortKey] = useState<keyof EssayEvaluation>("avgSelfGrade");
+  const [sortKey, setSortKey] = useState<keyof EssayEvaluation>("avgRougeLF1");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [visibleColumns, setVisibleColumns] = useState<string[]>([
     'provider', 'model', 'avgSelfGrade', 'avgCosineSimilarity', 'avgRougeLF1', 'cosinePerDollar', 'reasoning', 'contextLength', 'strategyShort'
@@ -189,6 +189,11 @@ export function EssayLeaderboard({ viewFilter = "essay", onViewFilterChange }: E
 
   return (
     <div>
+      <div className="flex justify-end mb-2">
+        <span className="text-xs text-slate-500 dark:text-gray-400">
+          Last updated: September 12th, 2025
+        </span>
+      </div>
       <CommonFilters
         searchTerm={searchTerm}
         onSearchTermChange={setSearchTerm}
@@ -209,16 +214,6 @@ export function EssayLeaderboard({ viewFilter = "essay", onViewFilterChange }: E
         onViewFilterChange={onViewFilterChange}
       />
       
-      <div className="mb-6">
-        <div className="flex justify-end">
-          <div className="inline-flex items-center gap-2 bg-white/40 dark:bg-white/10 backdrop-blur-md rounded-lg px-3 py-1.5 border border-white/30 dark:border-white/20 shadow-sm">
-            <span className="text-xs text-slate-500 dark:text-gray-400 font-medium">
-              Last updated: July 31st, 2025
-            </span>
-          </div>
-        </div>
-      </div>
-
       <div className="bg-white/10 dark:bg-white/5 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl p-6 overflow-visible">
         <LeaderboardTable
           data={sortedData}
@@ -228,6 +223,7 @@ export function EssayLeaderboard({ viewFilter = "essay", onViewFilterChange }: E
           sortKey={sortKey}
           sortDirection={sortDirection}
           visibleColumns={visibleColumns}
+          lastUpdated="July 31st, 2025"
         />
       </div>
     </div>

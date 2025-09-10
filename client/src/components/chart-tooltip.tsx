@@ -57,7 +57,7 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   const getDarkModeLogoClass = (model: string): string => {
     // If model is a provider name, use it directly
     const provider = data.provider || getProviderInfo(model).name;
-    const darkLogos = ['Writer', 'xAI', 'Anthropic', 'OpenAI'];
+    const darkLogos = ['Writer', 'xAI', 'Anthropic', 'OpenAI', 'Moonshot AI', 'Alibaba'];
     return darkLogos.includes(provider) ? 'dark:invert dark:brightness-0' : '';
   };
 
@@ -149,7 +149,7 @@ export function ScatterChartTooltip({ active, payload }: ChartTooltipProps) {
   // Helper function to determine if logo should be inverted in dark mode
   const getDarkModeLogoClass = (model: string): string => {
     const provider = getProviderInfo(model).name;
-    const darkLogos = ['Writer', 'xAI', 'Anthropic', 'OpenAI'];
+    const darkLogos = ['Writer', 'xAI', 'Anthropic', 'OpenAI', 'Moonshot AI', 'Alibaba'];
     return darkLogos.includes(provider) ? 'dark:invert dark:brightness-0' : '';
   };
 

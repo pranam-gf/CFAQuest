@@ -51,7 +51,7 @@ const PieTooltip = ({ active, payload }: any) => {
   
   // Helper function to determine if logo should be inverted in dark mode
   const getDarkModeLogoClass = (providerName: string): string => {
-    const darkLogos = ['Writer', 'xAI', 'Anthropic', 'OpenAI'];
+    const darkLogos = ['Writer', 'xAI', 'Anthropic', 'OpenAI', 'Moonshot AI', 'Alibaba'];
     return darkLogos.includes(providerName) ? 'dark:invert dark:brightness-0' : '';
   };
 
@@ -78,7 +78,7 @@ const PieTooltip = ({ active, payload }: any) => {
             {providerName}
           </span>
         </div>
-        <span className="text-xs font-medium text-gray-900 dark:text-white">
+        <span className="text-xs text-gray-900 dark:text-white">
           {data.payload.value} models
         </span>
       </div>
@@ -178,7 +178,7 @@ export function PerformanceCharts() {
       >
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">MCQ Accuracy by Model Type</h3>
+            <h3 className="text-xl font-light text-gray-900 dark:text-white tracking-wide">MCQ Accuracy by Model Type</h3>
           </div>
           <p className="text-xs text-gray-600 dark:text-gray-400">Reasoning vs Non-Reasoning Models</p>
         </div>
@@ -224,7 +224,7 @@ export function PerformanceCharts() {
       >
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Essay Accuracy by Model Type</h3>
+            <h3 className="text-xl font-light text-gray-900 dark:text-white tracking-wide">Essay Accuracy by Model Type</h3>
           </div>
           <p className="text-xs text-gray-600 dark:text-gray-400">Reasoning vs Non-Reasoning Models</p>
         </div>
@@ -278,7 +278,7 @@ export function PerformanceCharts() {
         >
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Performance Distribution</h3>
+              <h3 className="text-xl font-light text-gray-900 dark:text-white tracking-wide">Performance Distribution</h3>
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">Model performance categories</p>
           </div>
@@ -324,7 +324,7 @@ export function PerformanceCharts() {
         >
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Model Distribution</h3>
+              <h3 className="text-xl font-light text-gray-900 dark:text-white tracking-wide">Model Distribution</h3>
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">Models by organization</p>
           </div>
@@ -371,7 +371,7 @@ export function PerformanceCharts() {
       >
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Cost vs Performance Analysis</h3>
+            <h3 className="text-xl font-light text-gray-900 dark:text-white tracking-wide">Cost vs Performance Analysis</h3>
           </div>
           <p className="text-xs text-gray-600 dark:text-gray-400">Efficiency scatter plot visualization</p>
         </div>
@@ -421,7 +421,7 @@ export function PerformanceCharts() {
       >
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Strategy Performance</h3>
+            <h3 className="text-xl font-light text-gray-900 dark:text-white tracking-wide">Strategy Performance</h3>
           </div>
         </div>
         
@@ -436,11 +436,11 @@ export function PerformanceCharts() {
               className="text-center"
             >
               <div className="mb-3">
-                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">{strategy.strategy}</h4>
+                <h4 className="text-sm text-gray-900 dark:text-white mb-1">{strategy.strategy}</h4>
                 <p className="text-xs text-gray-600 dark:text-gray-400">Performance Score</p>
               </div>
               <div className="relative">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                <div className="text-2xl font-normal text-blue-600 dark:text-blue-400 mb-2">
                   {strategy.performance.toFixed(1)}%
                 </div>
                 <div className="w-full bg-white/20 dark:bg-white/10 rounded-full h-2 overflow-hidden">

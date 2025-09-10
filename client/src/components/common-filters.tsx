@@ -1,7 +1,5 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
-import { DropdownMenu } from "@/components/ui/dropdown-menu";
-import { MultiSelectDropdown } from "@/components/ui/multi-select-dropdown";
 import { GlobalFilters } from "@/components/global-filters";
 import { Search } from "lucide-react";
 
@@ -10,8 +8,8 @@ interface CommonFiltersProps {
   onSearchTermChange: (term: string) => void;
   modelTypeFilter?: string;
   onModelTypeFilterChange?: (filter: string) => void;
-  strategyFilter: string | string[];
-  onStrategyFilterChange: (filter: string | string[]) => void;
+  strategyFilter?: string | string[];
+  onStrategyFilterChange?: (filter: string | string[]) => void;
   providerFilter: string | string[];
   onProviderFilterChange: (filter: string | string[]) => void;
   contextLengthFilter: string | string[];
@@ -19,11 +17,9 @@ interface CommonFiltersProps {
   availableColumns: Array<{ key: string; label: string }>;
   visibleColumns: string[];
   onColumnVisibilityChange: (columns: string[]) => void;
-  strategyOptions: Array<{ value: string; label: string }>;
-  isMultiSelectStrategy?: boolean;
-  showModelTypeFilter?: boolean;
   viewFilter?: string;
   onViewFilterChange?: (view: string) => void;
+  additionalFilters?: React.ReactNode;
 }
 
 export const CommonFilters = React.memo(function CommonFilters({
@@ -40,11 +36,9 @@ export const CommonFilters = React.memo(function CommonFilters({
   availableColumns,
   visibleColumns,
   onColumnVisibilityChange,
-  strategyOptions,
-  isMultiSelectStrategy = false,
-  showModelTypeFilter = true,
   viewFilter,
-  onViewFilterChange
+  onViewFilterChange,
+  additionalFilters
 }: CommonFiltersProps) {
   return (
     <div className="flex flex-col lg:flex-row gap-3 mb-6">
@@ -62,50 +56,16 @@ export const CommonFilters = React.memo(function CommonFilters({
         onProviderFilterChange={onProviderFilterChange}
         contextLengthFilter={contextLengthFilter}
         onContextLengthFilterChange={onContextLengthFilterChange}
+        modelTypeFilter={modelTypeFilter}
+        onModelTypeFilterChange={onModelTypeFilterChange}
+        strategyFilter={strategyFilter}
+        onStrategyFilterChange={onStrategyFilterChange}
         availableColumns={availableColumns}
         visibleColumns={visibleColumns}
         onColumnVisibilityChange={onColumnVisibilityChange}
         viewFilter={viewFilter}
         onViewFilterChange={onViewFilterChange}
-        additionalFilters={
-          <>
-            {showModelTypeFilter && onModelTypeFilterChange && (
-              <DropdownMenu
-                value={modelTypeFilter || ""}
-                onValueChange={onModelTypeFilterChange}
-                placeholder="Model Type"
-                dynamicWidth={false}
-                minWidth={160}
-                className="flex-1 min-w-[160px] max-w-[200px]"
-                options={[
-                  { value: "all", label: "All" },
-                  { value: "Reasoning", label: "Reasoning" },
-                  { value: "Non-Reasoning", label: "Non-Reasoning" }
-                ]}
-              />
-            )}
-            {isMultiSelectStrategy ? (
-              <MultiSelectDropdown
-                value={strategyFilter as string[]}
-                onValueChange={onStrategyFilterChange as (filter: string[]) => void}
-                placeholder="Strategy"
-                minWidth={160}
-                className="flex-1 min-w-[160px] max-w-[200px]"
-                options={strategyOptions}
-              />
-            ) : (
-              <DropdownMenu
-                value={strategyFilter as string}
-                onValueChange={onStrategyFilterChange as (filter: string) => void}
-                placeholder="Strategy"
-                dynamicWidth={false}
-                minWidth={160}
-                className="flex-1 min-w-[160px] max-w-[200px]"
-                options={strategyOptions}
-              />
-            )}
-          </>
-        }
+        additionalFilters={additionalFilters}
       />
     </div>
   );

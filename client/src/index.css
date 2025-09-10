@@ -73,6 +73,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Host Grotesk', sans-serif;
+    font-weight: 300; /* Set font-light as default */
   }
 }
 
@@ -85,5 +86,18 @@
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
+  }
+}
+
+@layer components {
+  .footer-inverse {
+    @apply relative;
+  }
+  .footer-inverse::before {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-12 bg-background;
+    transform: translateY(-100%);
+    border-bottom-left-radius: 50%;
+    border-bottom-right-radius: 50%;
   }
 }

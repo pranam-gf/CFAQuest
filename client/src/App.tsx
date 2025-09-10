@@ -13,6 +13,7 @@ const Overall = lazy(() => import("@/pages/overall"));
 const McqPage = lazy(() => import("@/pages/mcq-page"));
 const EssayPage = lazy(() => import("@/pages/essay-page"));
 const ComparePage = lazy(() => import("@/pages/compare-page"));
+const Methodology = lazy(() => import("@/pages/methodology"));
 
 function Router() {
   return (
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/mcq" component={McqPage} />
       <Route path="/essay" component={EssayPage} />
       <Route path="/compare" component={ComparePage} />
+      <Route path="/methodology" component={Methodology} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -34,7 +36,7 @@ function App() {
       <ThemeProvider defaultTheme="light" storageKey="cfa-arena-theme">
         <TooltipProvider>
           <Toaster />
-          <Suspense fallback={<LoadingPage />}>
+          <Suspense fallback={<div />}>
             <Router />
           </Suspense>
         </TooltipProvider>

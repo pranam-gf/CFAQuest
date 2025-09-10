@@ -1,4 +1,5 @@
 import { useState, createContext, useContext, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { McqEvaluation, EssayEvaluation } from "@/types/models";
@@ -116,9 +117,9 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
   const availableColumns = useMemo(() => [
     { key: 'provider', label: 'Provider' },
     { key: 'model', label: 'Model' },
-    { key: 'overallScore', label: 'Overall Score' },
-    { key: 'mcqScore', label: 'MCQ Score' },
-    { key: 'essayScore', label: 'Essay Score' },
+    { key: 'overallScore', label: 'Overall' },
+    { key: 'mcqScore', label: 'MCQ' },
+    { key: 'essayScore', label: 'Essay' },
     { key: 'reasoning', label: 'Reasoning' },
     { key: 'context', label: 'Context' },
   ], []);
@@ -138,46 +139,56 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
       key: 'provider',
       label: 'Provider',
       type: 'provider-tooltip',
+      className: 'w-16 text-center',
       getValue: (row: any) => row.model
     },
     {
       key: 'model',
       label: 'Model',
-      type: 'model'
+      type: 'model',
+      className: 'w-40'
     },
     {
       key: 'overallScore',
-      label: 'Overall Score',
+      label: 'Overall',
       type: 'custom',
-      className: 'text-center',
+      className: 'text-center w-20',
+      tooltip: 'Overall Score Formula',
+      tooltipContent: {
+        'Formula': '(Best MCQ Accuracy + Best Essay Self-Grade) / 2',
+        'MCQ Score': 'Highest accuracy (0-1) across all strategies for each model',
+        'Essay Score': 'Highest self-grade total across all strategies for each model',
+        'Note': 'Essays use custom scales per question, no normalization applied'
+      },
       render: (value: any) => (
-        <div className="text-sm text-gray-900 dark:text-white font-medium text-center">
+        <span className="text-sm text-gray-900 dark:text-white font-medium">
           {value.toFixed(2)}
-        </div>
+        </span>
       )
     },
     {
       key: 'mcqScore',
-      label: 'MCQ Score',
+      label: 'MCQ',
       type: 'custom',
+      className: 'text-center w-24',
       render: (value: any, row: any) => {
         const mcqMatch = searchedMcqData.find(m => m.model === row.model);
         if (!mcqMatch) {
           return (
-            <div className="text-sm text-gray-900 dark:text-white">
+            <div className="text-sm text-gray-900 dark:text-white text-center">
               N/A
             </div>
           );
         }
         const percentage = mcqMatch.accuracy * 100;
         return (
-          <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-gray-900 dark:text-white text-center">
+          <div className="flex flex-col items-center gap-1 min-w-0">
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
               {Math.round(percentage)}%
             </span>
-            <div className="bg-white/20 dark:bg-white/10 rounded-full h-2 border border-gray-300/50 dark:border-transparent">
+            <div className="w-full max-w-16 bg-gray-200/60 dark:bg-gray-700/60 rounded-full h-1.5">
               <div
-                className="bg-emerald-500 h-2 rounded-full"
+                className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
                 style={{ width: `${percentage}%` }}
               />
             </div>
@@ -187,26 +198,36 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
     },
     {
       key: 'essayScore',
-      label: 'Essay Score',
+      label: 'Essay',
       type: 'custom',
+      className: 'text-center w-24',
+      tooltip: 'Essay Score Explanation',
+      tooltipContent: {
+        'Score': 'Self-Grade total from GPT-4.1 evaluation',
+        'Rubric': 'Based on CFA Level 3 scoring rubric',
+      },
       render: (value: any, row: any) => {
         const essayMatch = searchedEssayData.find(m => m.model === row.model);
         if (!essayMatch) {
           return (
-            <div className="text-sm text-gray-900 dark:text-white">
+            <div className="text-sm text-gray-900 dark:text-white text-center">
               N/A
             </div>
           );
         }
-        const percentage = (essayMatch.avgSelfGrade / 4) * 100;
+        // Just use the self-grade as is (no normalization or ROUGE-L)
+        const selfGrade = essayMatch.avgSelfGrade;
+        // For progress bar, assume max possible score is around 4 (typical essay scale)
+        const percentage = Math.min((selfGrade / 4) * 100, 100);
+        
         return (
-          <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-gray-900 dark:text-white text-center">
-              {essayMatch.avgSelfGrade}
+          <div className="flex flex-col items-center gap-1 min-w-0">
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
+              {selfGrade.toFixed(2)}
             </span>
-            <div className="bg-white/20 dark:bg-white/10 rounded-full h-2 border border-gray-300/50 dark:border-transparent">
+            <div className="w-full max-w-16 bg-gray-200/60 dark:bg-gray-700/60 rounded-full h-1.5">
               <div
-                className="bg-emerald-500 h-2 rounded-full"
+                className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
                 style={{ width: `${percentage}%` }}
               />
             </div>
@@ -218,8 +239,7 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
       key: 'reasoning',
       label: 'Reasoning',
       type: 'custom',
-      width: 'w-36',
-      className: 'text-center',
+      className: 'text-center w-20',
       render: (value: any, row: any) => {
         const mcqMatch = searchedMcqData.find(m => m.model === row.model);
         const essayMatch = searchedEssayData.find(m => m.model === row.model);
@@ -238,6 +258,7 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
       key: 'context',
       label: 'Context',
       type: 'custom',
+      className: 'text-center w-20',
       render: (value: any, row: any) => {
         const mcqMatch = searchedMcqData.find(m => m.model === row.model);
         const essayMatch = searchedEssayData.find(m => m.model === row.model);
@@ -253,7 +274,7 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100/30 dark:from-black dark:via-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-white dark:bg-black">
         <HeaderNavigation />
         <div className="container mx-auto py-8">
           <div className="animate-pulse space-y-4">
@@ -268,6 +289,14 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
 
   return (
     <div>
+      <div className="mb-6">
+        <div className="flex justify-end"> 
+            <span className="text-xs text-slate-500 dark:text-gray-400 font-light">
+          Last updated: September 12th, 2025
+            </span>
+        </div>
+      </div>
+
       <CommonFilters
         searchTerm={searchTerm}
         onSearchTermChange={setSearchTerm}
@@ -287,16 +316,6 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
         viewFilter={viewFilter}
         onViewFilterChange={onViewFilterChange}
       />
-
-      <div className="mb-6">
-        <div className="flex justify-end">
-          <div className="inline-flex items-center gap-2 bg-white/40 dark:bg-white/10 backdrop-blur-md rounded-lg px-3 py-1.5 border border-white/30 dark:border-white/20 shadow-sm">
-            <span className="text-xs text-slate-500 dark:text-gray-400 font-medium">
-              Last updated: July 31st, 2025
-            </span>
-          </div>
-        </div>
-      </div>
 
       <div className="mb-8">
         <div className="bg-white/10 dark:bg-white/5 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl p-6 overflow-visible">
@@ -320,53 +339,59 @@ export default function Overall() {
   };
 
   const renderContent = () => {
+    let content;
     switch (currentView) {
       case 'mcq':
-        return (
-          <div className="w-full px-6 lg:px-8 pt-8 pb-0 flex-grow overflow-visible">
-            <div className="max-w-7xl mx-auto overflow-visible">
-              <McqLeaderboard 
-                viewFilter={currentView}
-                onViewFilterChange={handleViewFilterChange}
-              />
-            </div>
-          </div>
-        );
+        content = <McqLeaderboard 
+          viewFilter={currentView}
+          onViewFilterChange={handleViewFilterChange}
+        />;
+        break;
       case 'essay':
-        return (
-          <div className="w-full px-6 lg:px-8 pt-8 pb-0 flex-grow overflow-visible">
-            <div className="max-w-7xl mx-auto overflow-visible">
-              <EssayLeaderboard 
-                viewFilter={currentView}
-                onViewFilterChange={handleViewFilterChange}
-              />
-            </div>
-          </div>
-        );
+        content = <EssayLeaderboard 
+          viewFilter={currentView}
+          onViewFilterChange={handleViewFilterChange}
+        />;
+        break;
       default:
-        return (
-          <div className="w-full px-6 lg:px-8 pt-8 pb-0 flex-grow overflow-visible">
-            <div className="max-w-7xl mx-auto overflow-visible">
-              <OverallContent 
-                viewFilter={currentView}
-                onViewFilterChange={handleViewFilterChange}
-              />
-            </div>
-          </div>
-        );
+        content = <OverallContent 
+          viewFilter={currentView}
+          onViewFilterChange={handleViewFilterChange}
+        />;
+        break;
     }
+
+    return (
+      <motion.div
+        key={currentView}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
+        <div className="w-full px-6 lg:px-8 pt-8 pb-0 flex-grow overflow-visible">
+          <div className="max-w-7xl mx-auto overflow-visible">
+            {content}
+          </div>
+        </div>
+      </motion.div>
+    );
   };
 
   return (
     <ViewContext.Provider value={{ currentView, setCurrentView }}>
-      <div className="min-h-screen overflow-x-hidden overflow-y-visible bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100/30 dark:from-black dark:via-gray-900 dark:to-gray-800 flex flex-col">
+      <div className="min-h-screen overflow-x-hidden overflow-y-visible bg-white dark:bg-black flex flex-col">
         <HeaderNavigation />
         <div className="flex-grow relative overflow-visible">
-          <div className="absolute inset-0 bg-dot-pattern opacity-5 dark:opacity-10"></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-blue-500/5 to-[#464348]/10 dark:via-blue-500/10 dark:to-[#464348]/20"></div>
+          {/* Floating glass elements */}
+          <div className="absolute top-20 right-20 w-40 h-60 bg-gradient-to-br from-gray-200/30 to-gray-300/20 dark:from-white/10 dark:to-white/5 rounded-3xl transform rotate-12 blur-sm"></div>
+          <div className="absolute top-80 left-10 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-lg"></div>
+          
           <div className="relative z-10 overflow-visible">
             <HeroSection />
-            {renderContent()}
+            <AnimatePresence mode="wait">
+              {renderContent()}
+            </AnimatePresence>
           </div>
         </div>
         <Footer />

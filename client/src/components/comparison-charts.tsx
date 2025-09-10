@@ -4,6 +4,7 @@ import { Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getDisplayName } from "@/lib/model-display-names";
 import { getProviderInfo } from "@/lib/provider-mapping";
+import { ChartTooltip } from "./chart-tooltip";
 
 interface ComparisonChartsProps {
   selectedModels: string[];
@@ -22,9 +23,14 @@ function getModelPricing(modelId: string): PricingInfo | null {
     'gpt-4.1': { inputTokenPrice: 2.00, outputTokenPrice: 8.00, currency: 'USD', unit: 'per 1M tokens' },
     'o3-mini': { inputTokenPrice: 1.10, outputTokenPrice: 0.55, currency: 'USD', unit: 'per 1M tokens' },
     'o4-mini': { inputTokenPrice: 1.10, outputTokenPrice: 4.40, currency: 'USD', unit: 'per 1M tokens' },
+    'gpt-5': { inputTokenPrice: 1.25, outputTokenPrice: 10.00, currency: 'USD', unit: 'per 1M tokens' },
+    'gpt-5-mini': { inputTokenPrice: 0.25, outputTokenPrice: 2.00, currency: 'USD', unit: 'per 1M tokens' },
+    'gpt-5-nano': { inputTokenPrice: 0.05, outputTokenPrice: 0.40, currency: 'USD', unit: 'per 1M tokens' },
     
     // Anthropic Models
     'claude-opus-4': { inputTokenPrice: 15.00, outputTokenPrice: 75.00, currency: 'USD', unit: 'per 1M tokens' },
+    'claude-opus-4.1': { inputTokenPrice: 15.00, outputTokenPrice: 75.00, currency: 'USD', unit: 'per 1M tokens' },
+    'claude-opus-4.1-thinking': { inputTokenPrice: 15.00, outputTokenPrice: 75.00, currency: 'USD', unit: 'per 1M tokens' },
     'claude-sonnet-4': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
     'claude-3.7-sonnet': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
     'claude-3.5-sonnet': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
@@ -36,6 +42,7 @@ function getModelPricing(modelId: string): PricingInfo | null {
     
     // xAI Models
     'grok-3': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
+    'grok-4': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
     'grok-3-mini-beta-high-effort': { inputTokenPrice: 0.30, outputTokenPrice: 0.50, currency: 'USD', unit: 'per 1M tokens' },
     'grok-3-mini-beta-low-effort': { inputTokenPrice: 0.30, outputTokenPrice: 0.50, currency: 'USD', unit: 'per 1M tokens' },
 
@@ -53,6 +60,16 @@ function getModelPricing(modelId: string): PricingInfo | null {
 
     // Writer Models
     'palmyra-fin-default': { inputTokenPrice: 5.00, outputTokenPrice: 12.00, currency: 'USD', unit: 'per 1M tokens' },
+
+    // Qwen Models
+    'qwen3-32b': { inputTokenPrice: 0.29, outputTokenPrice: 0.59, currency: 'USD', unit: 'per 1M tokens' },
+
+    // Moonshot AI Models
+    'kimi-k2': { inputTokenPrice: 1.00, outputTokenPrice: 3.00, currency: 'USD', unit: 'per 1M tokens' },
+
+    // Open Source Models
+    'oss-20b': { inputTokenPrice: 0.10, outputTokenPrice: 0.50, currency: 'USD', unit: 'per 1M tokens' },
+    'oss-120b': { inputTokenPrice: 0.15, outputTokenPrice: 0.75, currency: 'USD', unit: 'per 1M tokens' },
   };
   
   if (pricingMap[modelId]) {
@@ -68,39 +85,6 @@ function getModelPricing(modelId: string): PricingInfo | null {
   return null;
 }
 
-// Clean tooltip for both light and dark modes
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200/80 dark:border-gray-700/80 rounded-xl p-3 shadow-xl">
-        <p className="font-medium text-gray-900 dark:text-white mb-2 text-sm">{label}</p>
-        <div className="space-y-1">
-          {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-2.5 h-2.5 rounded-full" 
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="text-xs text-gray-700 dark:text-gray-300">{entry.name}</span>
-              </div>
-              <span className="text-xs font-medium text-gray-900 dark:text-white">
-                {entry.dataKey === 'inputTokenPrice' || entry.dataKey === 'outputTokenPrice' ? '$' : ''}
-                {typeof entry.value === 'number' ? entry.value.toFixed(2) : entry.value}
-                {entry.dataKey === 'mcqAccuracy' ? '%' : 
-                 entry.dataKey === 'avgTime' ? 's' : 
-                 entry.dataKey === 'cosineSimilarity' || entry.dataKey === 'rougeScore' ? '%' : 
-                 entry.dataKey === 'inputTokenPrice' || entry.dataKey === 'outputTokenPrice' ? '/1M' :
-                 entry.dataKey === 'pricingEfficiency' ? ' acc/$ ratio' : ''}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  return null;
-};
 
 // Minimal legend component
 const CleanLegend = ({ data }: any) => {
@@ -125,22 +109,38 @@ const CleanLegend = ({ data }: any) => {
 
 export function ComparisonCharts({ selectedModels, mcqData, essayData }: ComparisonChartsProps) {
   const chartData = selectedModels.map((modelId, index) => {
-    const modelMcq = mcqData?.find(m => m.model === modelId);
-    const modelEssay = essayData?.find(e => e.model === modelId);
+    // Group MCQ data by model and find the highest accuracy for each model (like hero-performance-chart-v2)
+    const modelMcqEntries = mcqData?.filter(m => m.model === modelId) || [];
+    const modelMcq = modelMcqEntries.reduce((best, current) => 
+      !best || current.accuracy > best.accuracy ? current : best, null as McqEvaluation | null);
+    
+    // Group essay data by model and find the highest ROUGE-L F1 score for each model (like hero-performance-chart-v2)
+    const modelEssayEntries = essayData?.filter(e => e.model === modelId) || [];
+    const modelEssay = modelEssayEntries.reduce((best, current) => 
+      !best || current.avgRougeLF1 > best.avgRougeLF1 ? current : best, null as EssayEvaluation | null);
+    
     const pricing = getModelPricing(modelId);
     const displayName = getDisplayName(modelId);
+    
+    // Determine model type - prioritize MCQ data, fallback to essay data
+    const modelType = modelMcq?.modelType || modelEssay?.modelType || undefined;
+    
     return {
       name: displayName.length > 16 ? displayName.substring(0, 16) + '...' : displayName,
       fullName: displayName,
+      fullModel: modelId,
+      model: modelId,
+      provider: getProviderInfo(modelId).name,
+      modelType: modelType,
       mcqAccuracy: modelMcq ? modelMcq.accuracy * 100 : 0,
       avgTime: modelMcq ? modelMcq.avgTimePerQuestion : 0,
       essayGrade: modelEssay ? modelEssay.avgSelfGrade : 0,
       cosineSimilarity: modelEssay ? modelEssay.avgCosineSimilarity * 100 : 0,
       totalCost: modelMcq ? modelMcq.totalCost : 0,
-      rougeScore: modelEssay ? modelEssay.avgRougeLF1 * 100 : 0,
+      rougeScore: modelEssay ? modelEssay.avgRougeLF1 * 100 : 0, // Using highest ROUGE-L F1 score
       inputTokenPrice: pricing?.inputTokenPrice || 0,
       outputTokenPrice: pricing?.outputTokenPrice || 0,
-      pricingEfficiency: pricing && modelMcq ? (modelMcq.accuracy * 100) / (pricing.inputTokenPrice + pricing.outputTokenPrice) : 0,
+      pricingEfficiency: pricing && modelMcq && pricing.inputTokenPrice !== undefined && pricing.outputTokenPrice !== undefined ? (modelMcq.accuracy * 100) / (pricing.inputTokenPrice + pricing.outputTokenPrice) : 0,
     };
   });
 
@@ -216,12 +216,13 @@ export function ComparisonCharts({ selectedModels, mcqData, essayData }: Compari
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               />
               <YAxis 
+                domain={[0, 100]}
                 tick={{ fontSize: 11, fill: 'currentColor' }}
                 className="text-gray-600 dark:text-gray-400"
                 axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<ChartTooltip />} />
               
               <Bar 
                 dataKey="mcqAccuracy" 
@@ -276,12 +277,13 @@ export function ComparisonCharts({ selectedModels, mcqData, essayData }: Compari
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               />
               <YAxis 
+                domain={[0, 100]}
                 tick={{ fontSize: 11, fill: 'currentColor' }}
                 className="text-gray-600 dark:text-gray-400"
                 axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<ChartTooltip />} />
               <Area
                 type="monotone"
                 dataKey="essayGrade"
@@ -330,12 +332,13 @@ export function ComparisonCharts({ selectedModels, mcqData, essayData }: Compari
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               />
               <YAxis 
+                domain={[0, 100]}
                 tick={{ fontSize: 11, fill: 'currentColor' }}
                 className="text-gray-600 dark:text-gray-400"
                 axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<ChartTooltip />} />
               <Area
                 type="monotone"
                 dataKey="cosineSimilarity"
@@ -384,12 +387,13 @@ export function ComparisonCharts({ selectedModels, mcqData, essayData }: Compari
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               />
               <YAxis 
+                domain={[0, 100]}
                 tick={{ fontSize: 11, fill: 'currentColor' }}
                 className="text-gray-600 dark:text-gray-400"
                 axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<ChartTooltip />} />
               <Area
                 type="monotone"
                 dataKey="rougeScore"
@@ -445,12 +449,13 @@ export function ComparisonCharts({ selectedModels, mcqData, essayData }: Compari
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               />
               <YAxis 
+                domain={[0, 'dataMax']}
                 tick={{ fontSize: 11, fill: 'currentColor' }}
                 className="text-gray-600 dark:text-gray-400"
                 axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<ChartTooltip />} />
               
               <Bar 
                 dataKey="inputTokenPrice" 
@@ -505,12 +510,13 @@ export function ComparisonCharts({ selectedModels, mcqData, essayData }: Compari
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               />
               <YAxis 
+                domain={[0, 100]}
                 tick={{ fontSize: 11, fill: 'currentColor' }}
                 className="text-gray-600 dark:text-gray-400"
                 axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<ChartTooltip />} />
               <Area
                 type="monotone"
                 dataKey="pricingEfficiency"
@@ -570,7 +576,7 @@ export function ComparisonCharts({ selectedModels, mcqData, essayData }: Compari
               axisLine={false}
               tickLine={false}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<ChartTooltip />} />
             <Area
               type="monotone"
               dataKey="totalCost"

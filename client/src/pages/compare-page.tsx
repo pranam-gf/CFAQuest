@@ -57,18 +57,18 @@ function ModelSelectionDropdown({ selectedModels, onSelectModel, allModels }: Mo
         className="bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-transform transform hover:scale-105"
       >
         <Plus className="w-5 h-5 mr-2" />
-        Add Model to Compare
+        Add Models to Compare
         <ChevronDown className={cn("w-5 h-5 ml-2 transition-transform", isOpen && "rotate-180")} />
       </Button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            initial={{ opacity: 0, y: -10, scale: 0.95, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, scale: 1, x: "-50%" }}
+            exit={{ opacity: 0, y: -10, scale: 0.95, x: "-50%" }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute z-50 mt-2 w-96 left-0 right-0 mx-auto origin-top rounded-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border border-gray-200 dark:border-gray-700 shadow-2xl"
+            className="absolute z-50 mt-2 w-96 left-1/2 origin-top rounded-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border border-gray-200 dark:border-gray-700 shadow-2xl"
           >
             <div className="p-2">
               <div className="relative">
@@ -127,9 +127,14 @@ function getModelPricing(modelId: string): PricingInfo | null {
     'gpt-4.1': { inputTokenPrice: 2.00, outputTokenPrice: 8.00, currency: 'USD', unit: 'per 1M tokens' },
     'o3-mini': { inputTokenPrice: 1.10, outputTokenPrice: 0.55, currency: 'USD', unit: 'per 1M tokens' },
     'o4-mini': { inputTokenPrice: 1.10, outputTokenPrice: 4.40, currency: 'USD', unit: 'per 1M tokens' },
+    'gpt-5': { inputTokenPrice: 1.25, outputTokenPrice: 10.00, currency: 'USD', unit: 'per 1M tokens' },
+    'gpt-5-mini': { inputTokenPrice: 0.25, outputTokenPrice: 2.00, currency: 'USD', unit: 'per 1M tokens' },
+    'gpt-5-nano': { inputTokenPrice: 0.05, outputTokenPrice: 0.40, currency: 'USD', unit: 'per 1M tokens' },
     
     // Anthropic Models
     'claude-opus-4': { inputTokenPrice: 15.00, outputTokenPrice: 75.00, currency: 'USD', unit: 'per 1M tokens' },
+    'claude-opus-4.1': { inputTokenPrice: 15.00, outputTokenPrice: 75.00, currency: 'USD', unit: 'per 1M tokens' },
+    'claude-opus-4.1-thinking': { inputTokenPrice: 15.00, outputTokenPrice: 75.00, currency: 'USD', unit: 'per 1M tokens' },
     'claude-sonnet-4': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
     'claude-3.7-sonnet': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
     'claude-3.5-sonnet': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
@@ -140,6 +145,7 @@ function getModelPricing(modelId: string): PricingInfo | null {
     
     // xAI Models
     'grok-3': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
+    'grok-4': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
     'grok-3-mini-beta-high-effort': { inputTokenPrice: 0.30, outputTokenPrice: 0.50, currency: 'USD', unit: 'per 1M tokens' },
     'grok-3-mini-beta-low-effort': { inputTokenPrice: 0.30, outputTokenPrice: 0.50, currency: 'USD', unit: 'per 1M tokens' },
 
@@ -159,6 +165,15 @@ function getModelPricing(modelId: string): PricingInfo | null {
     // Writer Models
     'palmyra-fin-default': { inputTokenPrice: 5.00, outputTokenPrice: 12.00, currency: 'USD', unit: 'per 1M tokens' },
 
+    // Qwen Models
+    'qwen3-32b': { inputTokenPrice: 0.29, outputTokenPrice: 0.59, currency: 'USD', unit: 'per 1M tokens' },
+
+    // Moonshot AI Models
+    'kimi-k2': { inputTokenPrice: 1.00, outputTokenPrice: 3.00, currency: 'USD', unit: 'per 1M tokens' },
+
+    // Open Source Models
+    'oss-20b': { inputTokenPrice: 0.10, outputTokenPrice: 0.50, currency: 'USD', unit: 'per 1M tokens' },
+    'oss-120b': { inputTokenPrice: 0.15, outputTokenPrice: 0.75, currency: 'USD', unit: 'per 1M tokens' },
 
     
   };
@@ -192,6 +207,8 @@ function getModelWebsite(modelId: string): string | null {
     'xAI': 'https://x.ai',
     'Groq': 'https://groq.com',
     'Writer': 'https://writer.com',
+    'Alibaba': 'https://qwen.com',
+    'Moonshot AI': 'https://moonshot.cn',
   };
   
   return websiteMap[providerInfo.name] || null;
@@ -207,18 +224,18 @@ function ModelCard({ modelId, mcqData, essayData, onRemove }: ModelCardProps) {
 
   if (!modelMcq && !modelEssay) {
     return (
-      <div className="w-full max-w-sm rounded-2xl border border-white/20 bg-white/30 dark:bg-black/10 backdrop-blur-xl shadow-2xl p-6 text-center">
-        <h3 className="text-xl font-bold text-gray-800 dark:text-white">{getDisplayName(modelId)}</h3>
+      <div className="w-full max-w-md min-w-[320px] rounded-2xl border border-white/20 bg-white/30 dark:bg-black/10 backdrop-blur-xl shadow-2xl p-6 text-center">
+        <h3 className="text-xl font-light text-gray-900 dark:text-white">{getDisplayName(modelId)}</h3>
         <p className="text-gray-600 dark:text-gray-300 mt-2">No data available</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-sm rounded-2xl border border-white/20 bg-white/30 dark:bg-black/10 backdrop-blur-xl shadow-2xl p-6 transition-all duration-300 hover:shadow-blue-500/20 hover:-translate-y-1">
+    <div className="w-full max-w-md min-w-[320px] rounded-2xl border border-white/20 bg-white/30 dark:bg-black/10 backdrop-blur-xl shadow-2xl p-6 transition-all duration-300 hover:shadow-blue-500/20 hover:-translate-y-1">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1 pr-2">
-          <h3 className="text-xl font-bold text-gray-800 dark:text-white truncate">{getDisplayName(modelId)}</h3>
+          <h3 className="text-xl font-light text-gray-900 dark:text-white truncate">{getDisplayName(modelId)}</h3>
           <div className="flex items-center gap-2 mt-1">
             <ProviderLogo modelName={modelId} size="sm" />
             <span className="text-sm text-gray-600 dark:text-gray-400">{providerInfo.name}</span>
@@ -363,17 +380,43 @@ export default function ComparePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-100/30 dark:from-black dark:via-gray-900 dark:to-gray-800 flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-black flex flex-col">
       <HeaderNavigation />
-      <main className="flex-grow p-4 pt-24 relative">
+      <main className="flex-grow p-4 pt-24 relative min-h-screen">
         <div className="absolute inset-0 bg-dot-pattern opacity-5 dark:opacity-10"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-blue-500/5 to-[#464348]/10 dark:via-blue-500/10 dark:to-[#464348]/20"></div>
+        {/* Floating glass elements */}
+        <div className="absolute top-20 right-20 w-40 h-60 bg-gradient-to-br from-gray-200/30 to-gray-300/20 dark:from-white/10 dark:to-white/5 rounded-3xl transform rotate-12 blur-sm"></div>
+        <div className="absolute top-80 left-10 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-lg"></div>
         <div className="relative z-10">
         <div className="container mx-auto pt-16 pb-8">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">Model Comparison</h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">Select models to compare their performance side-by-side.</p>
-            <div className="flex items-center justify-center gap-4">
+          <motion.div 
+            className="text-center mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <motion.h1 
+              className="text-4xl font-light text-gray-900 dark:text-white mb-2 tracking-wide"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0 }}
+            >
+              Model Comparison
+            </motion.h1>
+            <motion.p 
+              className="text-lg text-gray-600 dark:text-gray-400 mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              Select models to compare their performance side-by-side.
+            </motion.p>
+            <motion.div 
+              className="flex items-center justify-center gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+            >
               <ModelSelectionDropdown
                 selectedModels={selectedModels}
                 onSelectModel={handleSelectModel}
@@ -397,27 +440,57 @@ export default function ComparePage() {
                   </Button>
                 </motion.div>
               )}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
+          <AnimatePresence>
+            {selectedModels.length > 0 && (
+              <motion.div 
+                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 md:gap-8 justify-items-center max-w-7xl mx-auto px-4 md:px-6 lg:px-8 mt-8"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <AnimatePresence mode="popLayout">
+                  {selectedModels.map((modelId, index) => (
+                    <motion.div
+                      key={modelId}
+                      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ 
+                        duration: 0.3, 
+                        delay: index * 0.1,
+                        type: "tween",
+                        ease: "easeInOut"
+                      }}
+                      layout
+                    >
+                      <ModelCard 
+                          key={modelId} 
+                          modelId={modelId} 
+                          mcqData={mcqData} 
+                          essayData={essayData} 
+                          onRemove={handleRemoveModel} 
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
           {selectedModels.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
-              {selectedModels.map(modelId => (
-                <ModelCard 
-                    key={modelId} 
-                    modelId={modelId} 
-                    mcqData={mcqData} 
-                    essayData={essayData} 
-                    onRemove={handleRemoveModel} 
-                />
-              ))}
-            </div>
-          )}
-          {selectedModels.length > 0 && (
-            <ComparisonCharts 
-                selectedModels={selectedModels} 
-                mcqData={mcqData} 
-                essayData={essayData} 
-            />
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <ComparisonCharts 
+                  selectedModels={selectedModels} 
+                  mcqData={mcqData} 
+                  essayData={essayData} 
+              />
+            </motion.div>
           )}
         </div>
         </div>

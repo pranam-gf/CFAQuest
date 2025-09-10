@@ -4,6 +4,9 @@ export const MODEL_DISPLAY_NAMES: Record<string, string> = {
   'gpt-4o': 'GPT-4o',
   'gpt-4o-mini': 'GPT-4o mini',
   'gpt-4.1-mini': 'GPT-4.1 mini',
+  'gpt-5': 'GPT-5',
+  'gpt-5-mini': 'GPT-5 mini',
+  'gpt-5-nano': 'GPT-5 nano',
   'gpt-4-turbo': 'GPT-4 Turbo',
   'gpt-4': 'GPT-4',
   'gpt-3.5-turbo': 'GPT-3.5 Turbo',
@@ -11,6 +14,8 @@ export const MODEL_DISPLAY_NAMES: Record<string, string> = {
   'gpt-4.1-nano': 'GPT-4.1 nano',
   'o3-mini': 'o3-mini',
   'o4-mini': 'o4-mini',
+  'gpt-oss-20b': 'GPT OSS 20B',
+  'gpt-oss-120b': 'GPT OSS 120B',
   
   // Anthropic Models
   'claude-3.7-sonnet': 'Claude 3.7 Sonnet',
@@ -18,6 +23,8 @@ export const MODEL_DISPLAY_NAMES: Record<string, string> = {
   'claude-3.5-haiku': 'Claude 3.5 Haiku',
   'claude-3-opus': 'Claude 3 Opus',
   'claude-opus-4': 'Claude Opus 4',
+  'claude-opus-4.1': 'Claude Opus 4.1',
+  'claude-opus-4.1-thinking': 'Claude Opus 4.1 Thinking',
   'claude-sonnet-4': 'Claude Sonnet 4',
   'claude-3-sonnet': 'Claude 3 Sonnet',
   'claude-3-haiku': 'Claude 3 Haiku',
@@ -31,6 +38,7 @@ export const MODEL_DISPLAY_NAMES: Record<string, string> = {
   
   // xAI Models
   'grok-3': 'Grok 3',
+  'grok-4': 'Grok 4',
   'grok-3-mini-beta-high-effort': 'Grok 3 mini (High)',
   'grok-3-mini-beta-low-effort': 'Grok 3 mini (Low)',
 
@@ -75,6 +83,15 @@ export const MODEL_DISPLAY_NAMES: Record<string, string> = {
   'qwen-2.5-32b': 'Qwen 2.5 32B',
   'qwen-2.5-14b': 'Qwen 2.5 14B',
   'qwen-2.5-7b': 'Qwen 2.5 7B',
+  'qwen3-32b': 'Qwen 3 32B',
+  'groq-qwen3-32b': 'Qwen 3 32B',
+  
+  // Moonshot AI Models
+  'kimi-chat': 'Kimi Chat',
+  'kimi-k2': 'Kimi K2',
+  'moonshot-v1-8k': 'Moonshot v1 8K',
+  'moonshot-v1-32k': 'Moonshot v1 32K',
+  'moonshot-v1-128k': 'Moonshot v1 128K',
 };
 
 export function getDisplayName(modelId: string): string {

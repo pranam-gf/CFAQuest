@@ -62,25 +62,174 @@ interface ChartDataPoint {
   modelType: string;
 }
 
-const CleanTooltip = ({ active, payload, label }: any) => {
+// Helper function to format context length numbers
+const formatContextLength = (num: number, modelId: string): string => {
+  // Special case for Kimi K2 which has a very large context length (trillion)
+  if (modelId.toLowerCase().includes('kimi') && num >= 1_000_000_000_000) {
+    return `${(num / 1_000_000_000_000).toFixed(1)}T`;
+  }
+  
+  // For all other models, show exact numbers with comma separators
+  return num.toLocaleString();
+};
+
+// Helper function to get model pricing information
+const getModelPricing = (modelId: string) => {
+  const pricingMap: Record<string, { inputTokenPrice: number; outputTokenPrice: number; currency: string; unit: string }> = {
+    // OpenAI Models
+    'gpt-4o': { inputTokenPrice: 2.5, outputTokenPrice: 10.00, currency: 'USD', unit: 'per 1M tokens' },
+    'gpt-4.1-mini': { inputTokenPrice: 0.40, outputTokenPrice: 1.60, currency: 'USD', unit: 'per 1M tokens' },
+    'gpt-4.1-nano': { inputTokenPrice: 0.10, outputTokenPrice: 0.40, currency: 'USD', unit: 'per 1M tokens' },
+    'gpt-4o-mini': { inputTokenPrice: 0.15, outputTokenPrice: 0.60, currency: 'USD', unit: 'per 1M tokens' },
+    'gpt-4.1': { inputTokenPrice: 2.00, outputTokenPrice: 8.00, currency: 'USD', unit: 'per 1M tokens' },
+    'gpt-5': { inputTokenPrice: 1.25, outputTokenPrice: 10.00, currency: 'USD', unit: 'per 1M tokens' },
+    'gpt-5-mini': { inputTokenPrice: 0.25, outputTokenPrice: 2.00, currency: 'USD', unit: 'per 1M tokens' },
+    'gpt-5-nano': { inputTokenPrice: 0.05, outputTokenPrice: 0.40, currency: 'USD', unit: 'per 1M tokens' },
+    'o3-mini': { inputTokenPrice: 1.10, outputTokenPrice: 0.55, currency: 'USD', unit: 'per 1M tokens' },
+    'o4-mini': { inputTokenPrice: 1.10, outputTokenPrice: 4.40, currency: 'USD', unit: 'per 1M tokens' },
+    // Anthropic Models
+    'claude-opus-4': { inputTokenPrice: 15.00, outputTokenPrice: 75.00, currency: 'USD', unit: 'per 1M tokens' },
+    'claude-sonnet-4': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
+    'claude-3.7-sonnet': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
+    'claude-3.5-sonnet': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
+    'claude-3.5-haiku': { inputTokenPrice: 0.80, outputTokenPrice: 4.0, currency: 'USD', unit: 'per 1M tokens' },
+    // Google Models
+    'gemini-2.5-pro': { inputTokenPrice: 2.5, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
+    'gemini-2.5-flash': { inputTokenPrice: 0.3, outputTokenPrice: 2.50, currency: 'USD', unit: 'per 1M tokens' },
+    // xAI Models
+    'grok-3': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
+    'grok-3-mini-beta-high-effort': { inputTokenPrice: 0.30, outputTokenPrice: 0.50, currency: 'USD', unit: 'per 1M tokens' },
+    'grok-3-mini-beta-low-effort': { inputTokenPrice: 0.30, outputTokenPrice: 0.50, currency: 'USD', unit: 'per 1M tokens' },
+    // DeepSeek Models
+    'deepseek-r1': { inputTokenPrice: 0.75, outputTokenPrice: 0.99, currency: 'USD', unit: 'per 1M tokens' },
+    // Mistral Models
+    'mistral-large-official': { inputTokenPrice: 2.00, outputTokenPrice: 6.00, currency: 'USD', unit: 'per 1M tokens' },
+    // Meta Models
+    'groq-llama-4-maverick': { inputTokenPrice: 0.20, outputTokenPrice: 0.60, currency: 'USD', unit: 'per 1M tokens' },
+    'groq-llama3.3-70b': { inputTokenPrice: 0.59, outputTokenPrice: 0.79, currency: 'USD', unit: 'per 1M tokens' },
+    'groq-llama3.1-8b-instant': { inputTokenPrice: 0.05, outputTokenPrice: 0.08, currency: 'USD', unit: 'per 1M tokens' },
+    'groq-llama-4-scout': { inputTokenPrice: 0.11, outputTokenPrice: 0.34, currency: 'USD', unit: 'per 1M tokens' },
+    // Writer Models
+    'palmyra-fin-default': { inputTokenPrice: 5.00, outputTokenPrice: 12.00, currency: 'USD', unit: 'per 1M tokens' },
+    // xAI Additional Models
+    'grok-4': { inputTokenPrice: 3.00, outputTokenPrice: 15.00, currency: 'USD', unit: 'per 1M tokens' },
+    // Qwen Models
+    'qwen3-32b': { inputTokenPrice: 0.29, outputTokenPrice: 0.59, currency: 'USD', unit: 'per 1M tokens' },
+    // Moonshot AI Models
+    'kimi-k2': { inputTokenPrice: 1.00, outputTokenPrice: 3.00, currency: 'USD', unit: 'per 1M tokens' },
+    // Open Source Models
+    'oss-20b': { inputTokenPrice: 0.10, outputTokenPrice: 0.50, currency: 'USD', unit: 'per 1M tokens' },
+    'oss-120b': { inputTokenPrice: 0.15, outputTokenPrice: 0.75, currency: 'USD', unit: 'per 1M tokens' },
+  };
+  
+  // Try exact match first
+  if (pricingMap[modelId]) {
+    return pricingMap[modelId];
+  }
+  
+  // Try partial matching for model families
+  for (const [key, pricing] of Object.entries(pricingMap)) {
+    if (modelId.includes(key) || key.includes(modelId)) {
+      return pricing;
+    }
+  }
+  
+  return null;
+};
+
+// Helper function to get model website
+const getModelWebsite = (modelId: string): string | null => {
+  const providerInfo = getProviderInfo(modelId);
+  const websiteMap: Record<string, string> = {
+    'OpenAI': 'https://openai.com',
+    'Anthropic': 'https://anthropic.com',
+    'Google': 'https://ai.google.dev',
+    'DeepSeek': 'https://deepseek.com',
+    'Mistral': 'https://mistral.ai',
+    'Cohere': 'https://cohere.com',
+    'Meta': 'https://ai.meta.com',
+    'xAI': 'https://x.ai',
+    'Groq': 'https://groq.com',
+    'Writer': 'https://writer.com',
+    'Alibaba': 'https://qwen.com',
+    'Moonshot AI': 'https://moonshot.cn',
+  };
+  
+  return websiteMap[providerInfo.name] || null;
+};
+
+const CleanTooltip = ({ active, payload, label, mcqData, essayData }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    const providerInfo = getProviderInfo(data.model);
+    const pricing = getModelPricing(data.model);
+    const website = getModelWebsite(data.model);
+    
+    // Get context length from the data
+    const modelMcq = mcqData?.find((m: any) => m.model === data.model);
+    const modelEssay = essayData?.find((e: any) => e.model === data.model);
+    const contextLength = modelMcq?.contextLength || modelEssay?.contextLength;
+
     return (
-      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200/80 dark:border-gray-700/80 rounded-xl p-3 shadow-xl">
-        <div className="flex items-center gap-2 mb-2">
+      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border border-gray-200/80 dark:border-gray-700/80 rounded-xl p-4 shadow-xl max-w-xs">
+        <div className="flex items-center gap-2 mb-3">
           <ProviderLogo modelName={data.model} size="sm" />
-          <p className="font-semibold text-gray-900 dark:text-white text-sm">{getDisplayName(data.model)}</p>
+          <div>
+            <p className="font-semibold text-gray-900 dark:text-white text-sm">{getDisplayName(data.model)}</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">{providerInfo.name}</p>
+          </div>
         </div>
-        <div className="space-y-1 text-xs">
+        
+        {/* Performance Section */}
+        <div className="space-y-2 mb-3">
           <div className="flex justify-between gap-3">
-            <span className="text-gray-600 dark:text-gray-400">MCQ Accuracy:</span>
-            <span className="font-medium text-gray-800 dark:text-white">{data.mcqScore.toFixed(1)}%</span>
+            <span className="text-gray-600 dark:text-gray-400 text-xs">MCQ Accuracy:</span>
+            <span className="font-medium text-gray-800 dark:text-white text-xs">{data.mcqScore.toFixed(1)}%</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Essay Score:</span>
-            <span className="font-medium text-gray-800 dark:text-white">{data.essayScore.toFixed(2)}/4</span>
+          <div className="flex justify-between gap-3">
+            <span className="text-gray-600 dark:text-gray-400 text-xs">Essay Score:</span>
+            <span className="font-medium text-gray-800 dark:text-white text-xs">{data.essayScore.toFixed(3)} (avg)</span>
           </div>
         </div>
+
+        {/* Model Info Section */}
+        {(contextLength || website || pricing) && (
+          <>
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+              {contextLength && (
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Context Length:</span>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{formatContextLength(contextLength, data.model)}</span>
+                </div>
+              )}
+              
+              {website && (
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Website:</span>
+                  <span className="text-xs text-blue-600 dark:text-blue-400">{website.replace('https://', '')}</span>
+                </div>
+              )}
+
+              {pricing && (
+                <div className="mt-2">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Pricing (USD):</div>
+                  {pricing.inputTokenPrice && (
+                    <div className="flex justify-between items-center pl-2">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Input:</span>
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">${pricing.inputTokenPrice}/1M</span>
+                    </div>
+                  )}
+                  {pricing.outputTokenPrice && (
+                    <div className="flex justify-between items-center pl-2">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Output:</span>
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">${pricing.outputTokenPrice}/1M</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -90,6 +239,7 @@ const CleanTooltip = ({ active, payload, label }: any) => {
 export function HeroPerformanceChart() {
   const [hoveredPoint, setHoveredPoint] = useState<ChartDataPoint | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [filterType, setFilterType] = useState<'all' | 'reasoning' | 'non-reasoning'>('all');
   const svgRef = useRef<SVGSVGElement>(null);
 
   const { data: mcqData = [] } = useQuery<McqEvaluation[]>({ queryKey: ["/api/mcq-evaluations"] });
@@ -107,7 +257,7 @@ export function HeroPerformanceChart() {
       chartData.push({
         model,
         mcqScore: mcqItem.accuracy * 100,
-        essayScore: essayItem.avgSelfGrade,
+        essayScore: (essayItem.avgRougeLF1 + essayItem.avgSelfGrade) / 2, // Average of ROUGE-L F1 and self grade
         provider: getProviderInfo(model).name,
         modelType: mcqItem.modelType || essayItem.modelType || 'Unknown',
       });
@@ -117,6 +267,20 @@ export function HeroPerformanceChart() {
   // Separate data by model type
   const reasoningModels = chartData.filter(point => point.modelType === 'Reasoning');
   const nonReasoningModels = chartData.filter(point => point.modelType !== 'Reasoning');
+
+  // Filter data based on selected filter type
+  const getFilteredData = () => {
+    switch (filterType) {
+      case 'reasoning':
+        return reasoningModels;
+      case 'non-reasoning':
+        return nonReasoningModels;
+      default:
+        return chartData;
+    }
+  };
+
+  const filteredData = getFilteredData();
 
   // Sort both arrays by essayScore for connecting lines
   reasoningModels.sort((a, b) => a.essayScore - b.essayScore);
@@ -129,12 +293,13 @@ export function HeroPerformanceChart() {
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
-  // Calculate dynamic bounds based on actual data with more padding
-  const xValues = chartData.map(d => d.essayScore);
-  const yValues = chartData.map(d => d.mcqScore);
+  // Calculate dynamic bounds based on filtered data with more padding
+  const xValues = filteredData.map(d => d.essayScore);
+  const yValues = filteredData.map(d => d.mcqScore);
   
-  const xMin = 2.5;
-  const xMax = 3.5;
+  // Fixed X-axis range for better spacing and less clutter
+  const xMin = 0.75;
+  const xMax = 1.79;
   const yMin = Math.max(Math.min(...yValues) - 5, 0);
   const yMax = Math.min(Math.max(...yValues) + 5, 100);
 
@@ -143,10 +308,12 @@ export function HeroPerformanceChart() {
   
   const yScale = (value: number) => chartHeight - ((value - yMin) / (yMax - yMin)) * chartHeight;
 
-  // Generate ticks with smaller intervals for better fit
+  // Generate evenly spaced ticks for the focused range (0.75 to 1.79)
   const xTicks = [];
-  for (let i = xMin; i <= xMax; i += 0.1) {
-    xTicks.push(Math.round(i * 10) / 10);
+  const xStep = (xMax - xMin) / 10; // Create 10 intervals for good spacing
+  for (let i = 0; i <= 10; i++) {
+    const tickValue = xMin + (i * xStep);
+    xTicks.push(Math.round(tickValue * 100) / 100); // Round to 2 decimal places
   }
   
   // Generate detailed Y ticks with more granular values
@@ -162,11 +329,45 @@ export function HeroPerformanceChart() {
 
   // Create label position maps for alternating top/bottom positions
   const getLabelPositions = (models: ChartDataPoint[]) => {
-    const labelPositions = new Map<string, 'top' | 'bottom'>();
+    const labelPositions = new Map<string, 'top' | 'bottom' | 'hidden'>();
     const sortedByXPosition = [...models].sort((a, b) => a.essayScore - b.essayScore);
     
+    const topLabelsX: number[] = [];
+    const bottomLabelsX: number[] = [];
+    const minPixelDistance = 50; // Adjust this threshold
+
     sortedByXPosition.forEach((model, index) => {
-      labelPositions.set(model.model, index % 2 === 0 ? 'top' : 'bottom');
+      const currentX = margin.left + xScale(model.essayScore);
+      const position = index % 2 === 0 ? 'top' : 'bottom';
+      let collision = false;
+
+      if (position === 'top') {
+        for (const x of topLabelsX) {
+          if (Math.abs(currentX - x) < minPixelDistance) {
+            collision = true;
+            break;
+          }
+        }
+        if (!collision) {
+          topLabelsX.push(currentX);
+        }
+      } else { // bottom
+        for (const x of bottomLabelsX) {
+          if (Math.abs(currentX - x) < minPixelDistance) {
+            collision = true;
+            break;
+          }
+        }
+        if (!collision) {
+          bottomLabelsX.push(currentX);
+        }
+      }
+
+      if (collision) {
+        labelPositions.set(model.model, 'hidden');
+      } else {
+        labelPositions.set(model.model, position);
+      }
     });
     
     return labelPositions;
@@ -205,6 +406,16 @@ export function HeroPerformanceChart() {
             className="min-w-fit flex justify-center"
           >
             <svg ref={svgRef} width={width} height={height} className="rounded-xl bg-transparent">
+              <defs>
+                <clipPath id="chart-area">
+                  <rect 
+                    x={margin.left} 
+                    y={margin.top} 
+                    width={chartWidth} 
+                    height={chartHeight} 
+                  />
+                </clipPath>
+              </defs>
               <g className="grid">
                 {xTicks.map(tick => (
                   <line key={`x-grid-${tick}`} x1={margin.left + xScale(tick)} y1={margin.top} x2={margin.left + xScale(tick)} y2={margin.top + chartHeight} stroke="currentColor" strokeOpacity={0.1} className="text-slate-400 dark:text-slate-600" />
@@ -263,13 +474,13 @@ export function HeroPerformanceChart() {
                     </text>
                   </g>
                 ))}
-                <text x={margin.left + chartWidth / 2} y={margin.top + chartHeight + 50} textAnchor="middle" className="text-sm font-medium fill-slate-700 dark:fill-slate-300">Essay Evaluation Score</text>
+                <text x={margin.left + chartWidth / 2} y={margin.top + chartHeight + 50} textAnchor="middle" className="text-sm font-medium fill-slate-700 dark:fill-slate-300">Essay Score (ROUGE-L + Self Grade Avg)</text>
                 <text x={-margin.top - chartHeight / 2} y={12} textAnchor="middle" transform="rotate(-90)" className="text-sm font-medium fill-slate-700 dark:fill-slate-300">MCQ Accuracy (%)</text>
               </g>
 
               {/* Connecting lines for reasoning models */}
-              <g className="reasoning-line">
-                {reasoningModels.length > 1 && (
+              <g className={`reasoning-line transition-all duration-200 ${hoveredPoint ? 'hidden' : ''} ${filterType === 'non-reasoning' ? 'opacity-20' : ''}`} clipPath="url(#chart-area)">
+                {reasoningModels.length > 1 && (filterType === 'all' || filterType === 'reasoning') && (
                   <path
                     d={reasoningModels.map((point, index) => 
                       `${index === 0 ? 'M' : 'L'} ${margin.left + xScale(point.essayScore)} ${margin.top + yScale(point.mcqScore)}`
@@ -284,8 +495,8 @@ export function HeroPerformanceChart() {
               </g>
 
               {/* Connecting lines for non-reasoning models */}
-              <g className="non-reasoning-line">
-                {nonReasoningModels.length > 1 && (
+              <g className={`non-reasoning-line transition-all duration-200 ${hoveredPoint ? 'hidden' : ''} ${filterType === 'reasoning' ? 'opacity-20' : ''}`} clipPath="url(#chart-area)">
+                {nonReasoningModels.length > 1 && (filterType === 'all' || filterType === 'non-reasoning') && (
                   <path
                     d={nonReasoningModels.map((point, index) => 
                       `${index === 0 ? 'M' : 'L'} ${margin.left + xScale(point.essayScore)} ${margin.top + yScale(point.mcqScore)}`
@@ -300,12 +511,21 @@ export function HeroPerformanceChart() {
               </g>
 
               <g className="data-points">
-                {chartData.map((point, index) => (
+                {chartData.map((point, index) => {
+                  const isVisible = filterType === 'all' || 
+                    (filterType === 'reasoning' && point.modelType === 'Reasoning') ||
+                    (filterType === 'non-reasoning' && point.modelType !== 'Reasoning');
+                  
+                  return (
                   <motion.g
                     key={point.model}
                     initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    animate={{ 
+                      opacity: isVisible ? 1 : 0.1, 
+                      scale: isVisible ? 1 : 0.8 
+                    }}
                     transition={{ duration: 0.3, delay: index * 0.02 }}
+                    style={{ pointerEvents: isVisible ? 'auto' : 'none' }}
                   >
                     {hoveredPoint?.model === point.model && (
                       <circle cx={margin.left + xScale(point.essayScore)} cy={margin.top + yScale(point.mcqScore)} r={20} fill="currentColor" className="text-blue-400 dark:text-blue-300" fillOpacity={0.2} />
@@ -318,7 +538,7 @@ export function HeroPerformanceChart() {
                         ? reasoningLabelPositions.get(point.model) 
                         : nonReasoningLabelPositions.get(point.model);
                       
-                      if (!labelPosition) return null;
+                      if (!labelPosition || labelPosition === 'hidden') return null;
                       
                       const yOffset = labelPosition === 'top' ? -25 : 35;
                       
@@ -327,7 +547,9 @@ export function HeroPerformanceChart() {
                           x={margin.left + xScale(point.essayScore)}
                           y={margin.top + yScale(point.mcqScore) + yOffset}
                           textAnchor="middle"
-                          className="text-xs font-medium fill-slate-700 dark:fill-slate-300 pointer-events-none"
+                          className={`text-xs font-medium fill-slate-700 dark:fill-slate-300 pointer-events-none transition-all duration-200 ${
+                            hoveredPoint && hoveredPoint.model !== point.model ? 'hidden' : ''
+                          }`}
                           style={{ fontSize: '10px' }}
                         >
                           {getShortDisplayName(point.model)}
@@ -336,75 +558,82 @@ export function HeroPerformanceChart() {
                     })()}
                     
                     <foreignObject x={margin.left + xScale(point.essayScore) - 16} y={margin.top + yScale(point.mcqScore) - 16} width={32} height={32} className="cursor-pointer" onMouseMove={(e) => handleMouseMove(e, point)} onMouseLeave={handleMouseLeave}>
-                      <div className={`w-8 h-8 transition-all duration-200 ${hoveredPoint?.model === point.model ? 'scale-125 drop-shadow-lg' : 'hover:scale-110'} overflow-visible flex items-center justify-center`}>
+                      <div className={`w-8 h-8 transition-all duration-200 ${
+                        hoveredPoint?.model === point.model 
+                          ? 'scale-125 drop-shadow-lg' 
+                          : hoveredPoint 
+                            ? 'hover:scale-110 opacity-0' 
+                            : 'hover:scale-110'
+                      } overflow-visible flex items-center justify-center`}>
                         <ProviderLogo modelName={point.model} className="w-7 h-7" />
                       </div>
                     </foreignObject>
                   </motion.g>
-                ))}
+                  );
+                })}
               </g>
 
-              {/* Minimal transparent legend - positioned near x-axis value 3.5 */}
-              <g className="legend" opacity="0.8">
-                <rect
-                  x={margin.left + xScale(3.5) - 90}
-                  y={margin.top + chartHeight - 90}
-                  width={180}
-                  height={35}
-                  fill="white"
-                  fillOpacity="0.1"
-                  stroke="none"
-                  rx={4}
-                />
+              {/* Legend - positioned at bottom right */}
+              <g className="legend" opacity="0.9">
                 
                 {/* Reasoning Models Legend */}
-                <line
-                  x1={margin.left + xScale(3.5) - 75}
-                  y1={margin.top + chartHeight - 80}
-                  x2={margin.left + xScale(3.5) - 55}
-                  y2={margin.top + chartHeight - 80}
-                  stroke="rgb(16, 185, 129)"
-                  strokeWidth={2}
-                  strokeDasharray="4,4"
-                  opacity="0.7"
-                />
-                <text
-                  x={margin.left + xScale(3.5) - 50}
-                  y={margin.top + chartHeight - 76}
-                  className="text-xs fill-slate-600 dark:fill-slate-400"
-                  dominantBaseline="middle"
-                  opacity="0.8"
+                <g 
+                  className="cursor-pointer transition-all duration-200 hover:opacity-80"
+                  onClick={() => setFilterType(filterType === 'reasoning' ? 'all' : 'reasoning')}
                 >
-                  Reasoning Models
-                </text>
+                  <line
+                    x1={margin.left + chartWidth - 130}
+                    y1={margin.top + chartHeight - 65}
+                    x2={margin.left + chartWidth - 110}
+                    y2={margin.top + chartHeight - 65}
+                    stroke="rgb(16, 185, 129)"
+                    strokeWidth={filterType === 'reasoning' ? 3 : 2}
+                    strokeDasharray="4,4"
+                    strokeOpacity={filterType === 'non-reasoning' ? 0.3 : 1}
+                  />
+                  <text
+                    x={margin.left + chartWidth - 105}
+                    y={margin.top + chartHeight - 61}
+                    className={`text-xs ${filterType === 'reasoning' ? 'fill-emerald-600 dark:fill-emerald-400 font-semibold' : 'fill-slate-700 dark:fill-slate-300'}`}
+                    dominantBaseline="middle"
+                    opacity={filterType === 'non-reasoning' ? 0.5 : 1}
+                  >
+                    Reasoning Models
+                  </text>
+                </g>
                 
                 {/* Non-Reasoning Models Legend */}
-                <line
-                  x1={margin.left + xScale(3.5) - 75}
-                  y1={margin.top + chartHeight - 65}
-                  x2={margin.left + xScale(3.5) - 55}
-                  y2={margin.top + chartHeight - 65}
-                  stroke="rgb(59, 130, 246)"
-                  strokeWidth={2}
-                  strokeDasharray="8,4"
-                  opacity="0.7"
-                />
-                <text
-                  x={margin.left + xScale(3.5) - 50}
-                  y={margin.top + chartHeight - 61}
-                  className="text-xs fill-slate-600 dark:fill-slate-400"
-                  dominantBaseline="middle"
-                  opacity="0.8"
+                <g 
+                  className="cursor-pointer transition-all duration-200 hover:opacity-80"
+                  onClick={() => setFilterType(filterType === 'non-reasoning' ? 'all' : 'non-reasoning')}
                 >
-                  Non-Reasoning Models
-                </text>
+                  <line
+                    x1={margin.left + chartWidth - 130}
+                    y1={margin.top + chartHeight - 45}
+                    x2={margin.left + chartWidth - 110}
+                    y2={margin.top + chartHeight - 45}
+                    stroke="rgb(59, 130, 246)"
+                    strokeWidth={filterType === 'non-reasoning' ? 3 : 2}
+                    strokeDasharray="8,4"
+                    strokeOpacity={filterType === 'reasoning' ? 0.3 : 1}
+                  />
+                  <text
+                    x={margin.left + chartWidth - 105}
+                    y={margin.top + chartHeight - 41}
+                    className={`text-xs ${filterType === 'non-reasoning' ? 'fill-blue-600 dark:fill-blue-400 font-semibold' : 'fill-slate-700 dark:fill-slate-300'}`}
+                    dominantBaseline="middle"
+                    opacity={filterType === 'reasoning' ? 0.5 : 1}
+                  >
+                    Non-Reasoning Models
+                  </text>
+                </g>
               </g>
             </svg>
           </motion.div>
 
           {hoveredPoint && (
             <div className="absolute z-50 pointer-events-none" style={{ left: tooltipPosition.x + 8, top: tooltipPosition.y - 8, transform: tooltipPosition.x > width / 2 ? 'translateX(-100%)' : 'translateX(0)' }}>
-              <CleanTooltip active={true} payload={[{ payload: hoveredPoint }]} label={hoveredPoint.model} />
+              <CleanTooltip active={true} payload={[{ payload: hoveredPoint }]} label={hoveredPoint.model} mcqData={mcqData} essayData={essayData} />
             </div>
           )}
         </>

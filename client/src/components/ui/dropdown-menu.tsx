@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Check } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface DropdownOption {
   value: string;
@@ -101,22 +102,15 @@ export function DropdownMenu({
       ref={dropdownRef} 
       className={cn("relative", className)}
     >
-      <motion.button
+      <Button
         ref={triggerRef}
-        type="button"
+        variant="outline"
         onClick={handleToggle}
         style={dynamicWidth && triggerWidth ? { width: `${triggerWidth}px` } : undefined}
         className={cn(
-          "flex h-10 items-center justify-between rounded-md px-3 py-2 text-sm transition-all duration-200 bg-white/10 dark:bg-white/5 border border-white/30 dark:border-white/20 backdrop-blur-md hover:bg-white/20 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm",
-          !dynamicWidth && "w-full",
+          "h-10 w-full bg-white/10 dark:bg-white/5 border-white/30 dark:border-white/20 backdrop-blur-md hover:bg-white/20 dark:hover:bg-white/10 text-slate-700 dark:text-gray-200 shadow-sm flex items-center justify-between",
           triggerClassName
         )}
-        whileTap={{ scale: 0.98 }}
-        animate={{ 
-          borderColor: isOpen ? 'rgba(59, 130, 246, 0.5)' : undefined,
-          boxShadow: isOpen ? '0 0 0 2px rgba(59, 130, 246, 0.2)' : undefined
-        }}
-        transition={{ duration: 0.15 }}
       >
         <div className="flex items-center gap-2 min-w-0">
           {icon && (
@@ -131,13 +125,8 @@ export function DropdownMenu({
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </div>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2, ease: "easeInOut" }}
-        >
-          <ChevronDown className="h-4 w-4 text-slate-600 dark:text-gray-300" />
-        </motion.div>
-      </motion.button>
+        <ChevronDown className={cn("h-4 w-4 transition-transform text-slate-600 dark:text-gray-300", isOpen && "rotate-180")} />
+      </Button>
 
       <AnimatePresence>
         {isOpen && (

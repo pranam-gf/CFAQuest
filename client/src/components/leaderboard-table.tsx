@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Check, X } from "lucide-react";
+import { ArrowUpDown, Check, X, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
@@ -236,7 +238,7 @@ export function LeaderboardTable<T extends Record<string, any>>({
 
     if (column.tooltip && column.tooltipContent) {
       return (
-        <div className="flex items-center">
+        <div className={`flex items-center ${column.className?.includes('text-center') ? 'justify-center' : ''}`}>
           {column.label}
           <TooltipProvider>
             <Tooltip>
@@ -316,7 +318,13 @@ export function LeaderboardTable<T extends Record<string, any>>({
             const styling = getMedalStyling(index);
 
             return (
-              <TableRow key={row.id || index} className={styling.rowClass}>
+              <motion.tr 
+                key={row.id || index} 
+                className={cn("transition-colors", styling.rowClass)}
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: index * 0.05 }}
+              >
                 {showRank && (
                   <TableCell className="font-light">
                     {renderCellContent({ key: 'rank', label: 'Rank', type: 'rank' }, row, index)}
@@ -327,7 +335,7 @@ export function LeaderboardTable<T extends Record<string, any>>({
                     {renderCellContent(column, row, index)}
                   </TableCell>
                 ))}
-              </TableRow>
+              </motion.tr>
             );
           })}
         </TableBody>
@@ -337,9 +345,10 @@ export function LeaderboardTable<T extends Record<string, any>>({
           <Button 
             onClick={handleShowMore}
             variant="outline"
-            className="px-6 py-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+            size="sm"
+            className="w-10 h-10 p-0 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-full"
           >
-            Show More
+            <ChevronDown className="w-4 h-4" />
           </Button>
         </div>
       )}

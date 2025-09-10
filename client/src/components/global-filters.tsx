@@ -1,29 +1,26 @@
 import { useState, useEffect, useRef } from "react";
-import { DropdownMenu } from "@/components/ui/dropdown-menu";
-import { MultiSelectDropdown } from "@/components/ui/multi-select-dropdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronDown, Check, Search } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getProviderInfo } from "@/lib/provider-mapping";
 import { ProviderLogo } from "@/components/provider-logo";
-import { useLocation } from "wouter";
-import { useView } from "@/pages/overall";
-import type { ReactNode } from "react";
 
 // Provider options based on actual supported providers from provider-mapping.tsx
 const PROVIDER_OPTIONS = [
+  { value: "Alibaba", label: "Alibaba" },
   { value: "Anthropic", label: "Anthropic" },
-  { value: "OpenAI", label: "OpenAI" },
-  { value: "Google", label: "Google" },
   { value: "DeepSeek", label: "DeepSeek" },
-  { value: "Mistral", label: "Mistral" },
-  { value: "xAI", label: "xAI" },
+  { value: "Google", label: "Google" },
   { value: "Meta", label: "Meta" },
+  { value: "Mistral", label: "Mistral" },
+  { value: "Moonshot AI", label: "Moonshot AI" },
+  { value: "OpenAI", label: "OpenAI" },
   { value: "Writer", label: "Writer" },
+  { value: "xAI", label: "xAI" }
 ];
 
 // Helper function to get a sample model name for each provider
@@ -37,10 +34,28 @@ const getModelNameForProvider = (providerName: string): string => {
     'xAI': 'grok-beta',
     'Meta': 'llama-3.3-70b-instruct',
     'Writer': 'palmyra-fin-default',
+    'Moonshot AI': 'kimi-k2',
+    'Alibaba': 'qwen3-32b',
+    'Cohere': 'command-r-plus',
+    'Groq': 'groq-llama3.3-70b',
   };
   
   return providerToModelMap[providerName] || 'unknown-model';
 };
+
+// Model Type options
+const MODEL_TYPE_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "Reasoning", label: "Reasoning" },
+  { value: "Non-Reasoning", label: "Non-Reasoning" }
+];
+
+// Strategy options
+const STRATEGY_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "CoT", label: "Chain of Thought" },
+  { value: "Direct", label: "Direct" }
+];
 
 interface ProviderSelectionDropdownProps {
   selectedProviders: string[];
@@ -67,17 +82,17 @@ function ProviderSelectionDropdown({ selectedProviders, onSelectProvider }: Prov
   );
 
   const getSelectedText = () => {
-    if (selectedProviders.length === 0) return "AI Providers";
+    if (selectedProviders.length === 0) return "AI Provider";
     if (selectedProviders.length === 1) return selectedProviders[0];
     return `${selectedProviders.length} providers`;
   };
 
   return (
-    <div ref={dropdownRef} className="relative flex-1 min-w-[160px] max-w-[200px]">
+    <div ref={dropdownRef} className="relative flex-shrink-0">
       <Button
         variant="outline"
         onClick={() => setIsOpen(!isOpen)}
-        className="h-10 w-full bg-white/10 dark:bg-white/5 border-white/30 dark:border-white/20 backdrop-blur-md hover:bg-white/20 dark:hover:bg-white/10 text-slate-700 dark:text-gray-200 shadow-sm flex items-center justify-between"
+        className="h-10 w-full bg-slate-50/50 dark:bg-slate-700/20 border-slate-300 dark:border-slate-700 backdrop-blur-md hover:bg-slate-100/70 dark:hover:bg-slate-700/30 text-slate-700 dark:text-gray-200 shadow-sm flex items-center justify-between"
       >
         <span className="font-medium truncate">{getSelectedText()}</span>
         <ChevronDown className={cn("h-4 w-4 transition-transform text-slate-600 dark:text-gray-300", isOpen && "rotate-180")} />
@@ -90,7 +105,7 @@ function ProviderSelectionDropdown({ selectedProviders, onSelectProvider }: Prov
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute z-50 mt-1 w-80 left-0 right-0 mx-auto origin-top rounded-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border border-gray-200 dark:border-gray-700 shadow-2xl"
+            className="absolute z-50 mt-1 min-w-max left-0 origin-top rounded-xl bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-lg border border-slate-300 dark:border-slate-700 shadow-2xl"
           >
             <div className="p-2">
               <div className="relative">
@@ -103,22 +118,263 @@ function ProviderSelectionDropdown({ selectedProviders, onSelectProvider }: Prov
                 />
               </div>
             </div>
-            <ScrollArea className="h-48">
-              <div className="p-2 pt-0">
-                {filteredProviders.map(provider => (
+            <ScrollArea>
+              <div className="px-2">
+                {filteredProviders.map(provider => {
+                  const providerInfo = getProviderInfo(provider.value);
+                  const isSelected = selectedProviders.includes(provider.value);
+                  return (
+                    <div
+                      key={provider.value}
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200/50 dark:hover:bg-gray-800/50 cursor-pointer"
+                      onClick={() => onSelectProvider(provider.value)}
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => onSelectProvider(provider.value)}
+                        className="h-4 w-4"
+                      />
+                      <div className="flex items-center gap-2 flex-grow">
+                         <ProviderLogo modelName={getModelNameForProvider(provider.value)} size="sm" />
+                         <span className="font-medium text-sm text-gray-800 dark:text-gray-100">{provider.label}</span>
+                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+interface ModelTypeSelectionDropdownProps {
+  selectedModelType: string;
+  onSelectModelType: (modelType: string) => void;
+}
+
+interface StrategySelectionDropdownProps {
+  selectedStrategy: string;
+  onSelectStrategy: (strategy: string) => void;
+}
+
+interface StrategyMultiSelectionDropdownProps {
+  selectedStrategies: string[];
+  onSelectStrategy: (strategyId: string) => void;
+}
+
+function ModelTypeSelectionDropdown({ selectedModelType, onSelectModelType }: ModelTypeSelectionDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredModelTypes = MODEL_TYPE_OPTIONS;
+
+  const getSelectedText = () => {
+    const selected = MODEL_TYPE_OPTIONS.find(option => option.value === selectedModelType);
+    return selected ? selected.label : "Model Type";
+  };
+
+  return (
+    <div ref={dropdownRef} className="relative flex-shrink-0">
+      <Button
+        variant="outline"
+        onClick={() => setIsOpen(!isOpen)}
+        className="h-10 w-full bg-slate-50/50 dark:bg-slate-700/20 border-slate-300 dark:border-slate-700 backdrop-blur-md hover:bg-slate-100/70 dark:hover:bg-slate-700/30 text-slate-700 dark:text-gray-200 shadow-sm flex items-center justify-between"
+      >
+        <span className="font-medium truncate">{getSelectedText()}</span>
+        <ChevronDown className={cn("h-4 w-4 transition-transform text-slate-600 dark:text-gray-300", isOpen && "rotate-180")} />
+      </Button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute z-50 mt-1 min-w-max left-0 origin-top rounded-xl bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-lg border border-slate-300 dark:border-slate-700 shadow-2xl"
+          >
+
+            <ScrollArea>
+              <div className="px-2">
+                {filteredModelTypes.map(modelType => (
                   <div
-                    key={provider.value}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200/50 dark:hover:bg-gray-800/50 cursor-pointer"
-                    onClick={() => onSelectProvider(provider.value)}
+                    key={modelType.value}
+                    className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-gray-200/50 dark:hover:bg-gray-800/50 cursor-pointer"
+                    onClick={() => {
+                      onSelectModelType(modelType.value);
+                      setIsOpen(false);
+                    }}
                   >
                     <Checkbox
-                      checked={selectedProviders.includes(provider.value)}
-                      onCheckedChange={() => onSelectProvider(provider.value)}
+                      checked={selectedModelType === modelType.value}
+                      onCheckedChange={() => {
+                        onSelectModelType(modelType.value);
+                        setIsOpen(false);
+                      }}
                       className="h-4 w-4"
                     />
-                    <div className="flex-grow flex items-center justify-between">
-                      <span className="font-medium text-sm text-gray-800 dark:text-gray-100">{provider.label}</span>
-                      <ProviderLogo modelName={getModelNameForProvider(provider.value)} size="sm" />
+                    <div className="flex-grow">
+                      <span className="font-medium text-sm text-gray-800 dark:text-gray-100">{modelType.label}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function StrategySelectionDropdown({ selectedStrategy, onSelectStrategy }: StrategySelectionDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredStrategies = STRATEGY_OPTIONS;
+
+  const getSelectedText = () => {
+    const selected = STRATEGY_OPTIONS.find(option => option.value === selectedStrategy);
+    return selected ? selected.label : "Strategy";
+  };
+
+  return (
+    <div ref={dropdownRef} className="relative flex-shrink-0">
+      <Button
+        variant="outline"
+        onClick={() => setIsOpen(!isOpen)}
+        className="h-10 w-full bg-slate-50/50 dark:bg-slate-700/20 border-slate-300 dark:border-slate-700 backdrop-blur-md hover:bg-slate-100/70 dark:hover:bg-slate-700/30 text-slate-700 dark:text-gray-200 shadow-sm flex items-center justify-between"
+      >
+        <span className="font-medium truncate">{getSelectedText()}</span>
+        <ChevronDown className={cn("h-4 w-4 transition-transform text-slate-600 dark:text-gray-300", isOpen && "rotate-180")} />
+      </Button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute z-50 mt-1 min-w-max left-0 origin-top rounded-xl bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-lg border border-slate-300 dark:border-slate-700 shadow-2xl"
+          >
+
+            <ScrollArea>
+              <div className="px-2">
+                {filteredStrategies.map(strategy => (
+                  <div
+                    key={strategy.value}
+                    className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-gray-200/50 dark:hover:bg-gray-800/50 cursor-pointer"
+                    onClick={() => {
+                      onSelectStrategy(strategy.value);
+                      setIsOpen(false);
+                    }}
+                  >
+                    <Checkbox
+                      checked={selectedStrategy === strategy.value}
+                      onCheckedChange={() => {
+                        onSelectStrategy(strategy.value);
+                        setIsOpen(false);
+                      }}
+                      className="h-4 w-4"
+                    />
+                    <div className="flex-grow">
+                      <span className="font-medium text-sm text-gray-800 dark:text-gray-100">{strategy.label}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function StrategyMultiSelectionDropdown({ selectedStrategies, onSelectStrategy }: StrategyMultiSelectionDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredStrategies = STRATEGY_OPTIONS;
+
+  const getSelectedText = () => {
+    if (selectedStrategies.length === 0) return "Strategy";
+    if (selectedStrategies.length === 1) {
+      const strategy = STRATEGY_OPTIONS.find(s => s.value === selectedStrategies[0]);
+      return strategy ? strategy.label : selectedStrategies[0];
+    }
+    return `${selectedStrategies.length} strategies`;
+  };
+
+  return (
+    <div ref={dropdownRef} className="relative flex-shrink-0">
+      <Button
+        variant="outline"
+        onClick={() => setIsOpen(!isOpen)}
+        className="h-10 w-full bg-slate-50/50 dark:bg-slate-700/20 border-slate-300 dark:border-slate-700 backdrop-blur-md hover:bg-slate-100/70 dark:hover:bg-slate-700/30 text-slate-700 dark:text-gray-200 shadow-sm flex items-center justify-between"
+      >
+        <span className="font-medium truncate">{getSelectedText()}</span>
+        <ChevronDown className={cn("h-4 w-4 transition-transform text-slate-600 dark:text-gray-300", isOpen && "rotate-180")} />
+      </Button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute z-50 mt-1 min-w-max left-0 origin-top rounded-xl bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-lg border border-slate-300 dark:border-slate-700 shadow-2xl"
+          >
+            <ScrollArea>
+              <div className="p-2">
+                {filteredStrategies.map(strategy => (
+                  <div
+                    key={strategy.value}
+                    className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-gray-200/50 dark:hover:bg-gray-800/50 cursor-pointer"
+                    onClick={() => onSelectStrategy(strategy.value)}
+                  >
+                    <Checkbox
+                      checked={selectedStrategies.includes(strategy.value)}
+                      onCheckedChange={() => onSelectStrategy(strategy.value)}
+                      className="h-4 w-4"
+                    />
+                    <div className="flex-grow">
+                      <span className="font-medium text-sm text-gray-800 dark:text-gray-100">{strategy.label}</span>
                     </div>
                   </div>
                 ))}
@@ -157,11 +413,11 @@ function ContextLengthSelectionDropdown({ selectedContextLengths, onSelectContex
   };
 
   return (
-    <div ref={dropdownRef} className="relative flex-1 min-w-[160px] max-w-[200px]">
+    <div ref={dropdownRef} className="relative flex-shrink-0">
       <Button
         variant="outline"
         onClick={() => setIsOpen(!isOpen)}
-        className="h-10 w-full bg-white/10 dark:bg-white/5 border-white/30 dark:border-white/20 backdrop-blur-md hover:bg-white/20 dark:hover:bg-white/10 text-slate-700 dark:text-gray-200 shadow-sm flex items-center justify-between"
+        className="h-10 w-full bg-slate-50/50 dark:bg-slate-700/20 border-slate-300 dark:border-slate-700 backdrop-blur-md hover:bg-slate-100/70 dark:hover:bg-slate-700/30 text-slate-700 dark:text-gray-200 shadow-sm flex items-center justify-between"
       >
         <span className="font-medium truncate">{getSelectedText()}</span>
         <ChevronDown className={cn("h-4 w-4 transition-transform text-slate-600 dark:text-gray-300", isOpen && "rotate-180")} />
@@ -174,7 +430,7 @@ function ContextLengthSelectionDropdown({ selectedContextLengths, onSelectContex
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute z-50 mt-1 w-52 left-0 right-0 mx-auto origin-top rounded-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border border-gray-200 dark:border-gray-700 shadow-2xl"
+            className="absolute z-50 mt-1 min-w-max left-0 origin-top rounded-xl bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-lg border border-slate-300 dark:border-slate-700 shadow-2xl"
           >
             <ScrollArea className="h-32">
               <div className="p-2">
@@ -230,11 +486,11 @@ function ColumnSelectionDropdown({ availableColumns, visibleColumns, onToggleCol
   };
 
   return (
-    <div ref={dropdownRef} className="relative flex-1 min-w-[160px] max-w-[200px]">
+    <div ref={dropdownRef} className="relative flex-shrink-0">
       <Button
         variant="outline"
         onClick={() => setIsOpen(!isOpen)}
-        className="h-10 w-full bg-white/10 dark:bg-white/5 border-white/30 dark:border-white/20 backdrop-blur-md hover:bg-white/20 dark:hover:bg-white/10 text-slate-700 dark:text-gray-200 shadow-sm flex items-center justify-between"
+        className="h-10 w-full bg-slate-50/50 dark:bg-slate-700/20 border-slate-300 dark:border-slate-700 backdrop-blur-md hover:bg-slate-100/70 dark:hover:bg-slate-700/30 text-slate-700 dark:text-gray-200 shadow-sm flex items-center justify-between"
       >
         <span className="font-medium truncate">{getSelectedText()}</span>
         <ChevronDown className={cn("h-4 w-4 transition-transform text-slate-600 dark:text-gray-300", isOpen && "rotate-180")} />
@@ -247,7 +503,7 @@ function ColumnSelectionDropdown({ availableColumns, visibleColumns, onToggleCol
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute z-50 mt-1 w-52 left-0 right-0 mx-auto origin-top rounded-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border border-gray-200 dark:border-gray-700 shadow-2xl"
+            className="absolute z-50 mt-1 min-w-max left-0 origin-top rounded-xl bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-lg border border-slate-300 dark:border-slate-700 shadow-2xl"
           >
             <ScrollArea className="h-40">
               <div className="p-2">
@@ -300,10 +556,87 @@ const CONTEXT_LENGTH_OPTIONS = [
 
 // View Filter Options
 const VIEW_TYPE_OPTIONS = [
-  { value: "overall", label: "Overall Leaderboard" },
+  { value: "overall", label: "Overall Results" },
   { value: "mcq", label: "MCQ Results" },
   { value: "essay", label: "Essay Results" },
 ];
+
+interface ViewFilterDropdownProps {
+  selectedView: string;
+  onSelectView: (view: string) => void;
+}
+
+function ViewFilterDropdown({ selectedView, onSelectView }: ViewFilterDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const getSelectedText = () => {
+    const selected = VIEW_TYPE_OPTIONS.find(option => option.value === selectedView);
+    return selected ? selected.label : "View Type";
+  };
+
+  return (
+    <div ref={dropdownRef} className="relative flex-shrink-0">
+      <Button
+        variant="outline"
+        onClick={() => setIsOpen(!isOpen)}
+        className="h-10 w-full bg-slate-50/50 dark:bg-slate-700/20 border-slate-300 dark:border-slate-700 backdrop-blur-md hover:bg-slate-100/70 dark:hover:bg-slate-700/30 text-slate-700 dark:text-gray-200 shadow-sm flex items-center justify-between"
+      >
+        <span className="font-medium truncate">{getSelectedText()}</span>
+        <ChevronDown className={cn("h-4 w-4 transition-transform text-slate-600 dark:text-gray-300", isOpen && "rotate-180")} />
+      </Button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute z-50 mt-1 min-w-max left-0 origin-top rounded-xl bg-slate-50/90 dark:bg-slate-800/90 backdrop-blur-lg border border-slate-300 dark:border-slate-700 shadow-2xl"
+          >
+            <ScrollArea>
+              <div className="px-2">
+                {VIEW_TYPE_OPTIONS.map(viewType => (
+                  <div
+                    key={viewType.value}
+                    className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-gray-200/50 dark:hover:bg-gray-800/50 cursor-pointer"
+                    onClick={() => {
+                      onSelectView(viewType.value);
+                      setIsOpen(false);
+                    }}
+                  >
+                    <Checkbox
+                      checked={selectedView === viewType.value}
+                      onCheckedChange={() => {
+                        onSelectView(viewType.value);
+                        setIsOpen(false);
+                      }}
+                      className="h-4 w-4"
+                    />
+                    <div className="flex-grow">
+                      <span className="font-medium text-sm text-gray-800 dark:text-gray-100">{viewType.label}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 interface GlobalFiltersProps {
   // Provider filter (now supports multi-select)
@@ -313,6 +646,14 @@ interface GlobalFiltersProps {
   // Context length filter (now supports multi-select)
   contextLengthFilter: string | string[];
   onContextLengthFilterChange: (value: string | string[]) => void;
+  
+  // Model type filter
+  modelTypeFilter?: string;
+  onModelTypeFilterChange?: (value: string) => void;
+  
+  // Strategy filter
+  strategyFilter?: string | string[];
+  onStrategyFilterChange?: (value: string | string[]) => void;
   
   // Column visibility
   availableColumns: Array<{ key: string; label: string }>;
@@ -335,6 +676,10 @@ export function GlobalFilters({
   onProviderFilterChange,
   contextLengthFilter,
   onContextLengthFilterChange,
+  modelTypeFilter,
+  onModelTypeFilterChange,
+  strategyFilter,
+  onStrategyFilterChange,
   availableColumns,
   visibleColumns,
   onColumnVisibilityChange,
@@ -364,14 +709,9 @@ export function GlobalFilters({
     <div className={cn("flex flex-wrap lg:flex-nowrap items-center gap-3 flex-1", className)}>
       {/* View Filter */}
       {viewFilter && onViewFilterChange && (
-        <DropdownMenu
-          value={viewFilter}
-          onValueChange={onViewFilterChange}
-          placeholder="View Type"
-          dynamicWidth={false}
-          minWidth={200}
-          className="flex-1 min-w-[200px] max-w-[250px]"
-          options={VIEW_TYPE_OPTIONS}
+        <ViewFilterDropdown
+          selectedView={viewFilter}
+          onSelectView={onViewFilterChange}
         />
       )}
       
@@ -398,6 +738,35 @@ export function GlobalFilters({
           onContextLengthFilterChange(updatedContextLengths);
         }}
       />
+
+      {/* Model Type Filter */}
+      {modelTypeFilter !== undefined && onModelTypeFilterChange && (
+        <ModelTypeSelectionDropdown
+          selectedModelType={modelTypeFilter}
+          onSelectModelType={onModelTypeFilterChange}
+        />
+      )}
+
+      {/* Strategy Filter */}
+      {strategyFilter !== undefined && onStrategyFilterChange && (
+        Array.isArray(strategyFilter) ? (
+          <StrategyMultiSelectionDropdown
+            selectedStrategies={strategyFilter.filter(v => v !== 'all')}
+            onSelectStrategy={(strategyId) => {
+              const currentStrategies = strategyFilter.filter(v => v !== 'all');
+              const updatedStrategies = currentStrategies.includes(strategyId)
+                ? currentStrategies.filter(id => id !== strategyId)
+                : [...currentStrategies, strategyId];
+              onStrategyFilterChange(updatedStrategies);
+            }}
+          />
+        ) : (
+          <StrategySelectionDropdown
+            selectedStrategy={strategyFilter}
+            onSelectStrategy={onStrategyFilterChange}
+          />
+        )
+      )}
 
       {/* Additional Filters */}
       {additionalFilters}

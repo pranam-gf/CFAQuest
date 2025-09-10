@@ -1,69 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter, LineChart, Line, Area, AreaChart } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter, LineChart, Line, Area, AreaChart, Cell } from "recharts";
 import { McqEvaluation, EssayEvaluation } from "@/types/models";
 import { motion } from 'framer-motion';
 import { getProviderInfo } from "@/lib/provider-mapping";
 import { getDisplayName } from "@/lib/model-display-names";
 import { ChartTooltip, ScatterChartTooltip } from "@/components/chart-tooltip";
+import { getModelPricing, getModelAveragePrice } from "@/lib/model-pricing";
 
-// Get model pricing from compare-page.tsx pricing map
-function getModelPricing(modelId: string) {
-  const pricingMap: Record<string, { inputTokenPrice: number; outputTokenPrice: number }> = {
-    // OpenAI Models
-    'gpt-4o': { inputTokenPrice: 2.5, outputTokenPrice: 10.00 },
-    'gpt-4.1-mini': { inputTokenPrice: 0.40, outputTokenPrice: 1.60 },
-    'gpt-4.1-nano': { inputTokenPrice: 0.10, outputTokenPrice: 0.40 },
-    'gpt-4o-mini': { inputTokenPrice: 0.15, outputTokenPrice: 0.60 },
-    'gpt-4.1': { inputTokenPrice: 2.00, outputTokenPrice: 8.00 },
-    'o3-mini': { inputTokenPrice: 1.10, outputTokenPrice: 0.55 },
-    'o4-mini': { inputTokenPrice: 1.10, outputTokenPrice: 4.40 },
-    
-    // Anthropic Models
-    'claude-opus-4': { inputTokenPrice: 15.00, outputTokenPrice: 75.00 },
-    'claude-sonnet-4': { inputTokenPrice: 3.00, outputTokenPrice: 15.00 },
-    'claude-3.7-sonnet': { inputTokenPrice: 3.00, outputTokenPrice: 15.00 },
-    'claude-3.5-sonnet': { inputTokenPrice: 3.00, outputTokenPrice: 15.00 },
-    'claude-3.5-haiku': { inputTokenPrice: 0.80, outputTokenPrice: 4.0 },
-    
-    // Google Models
-    'gemini-2.5-pro': { inputTokenPrice: 2.5, outputTokenPrice: 15.00 },
-    'gemini-2.5-flash': { inputTokenPrice: 0.3, outputTokenPrice: 2.50 },
-    
-    // xAI Models
-    'grok-3': { inputTokenPrice: 3.00, outputTokenPrice: 15.00 },
-    'grok-3-mini-beta-high-effort': { inputTokenPrice: 0.30, outputTokenPrice: 0.50 },
-    'grok-3-mini-beta-low-effort': { inputTokenPrice: 0.30, outputTokenPrice: 0.50 },
-    
-    // DeepSeek Models
-    'deepseek-r1': { inputTokenPrice: 0.75, outputTokenPrice: 0.99 },
-    
-    // Mistral Models
-    'mistral-large-official': { inputTokenPrice: 2.00, outputTokenPrice: 6.00 },
-   
-    // Meta Models
-    'groq-llama-4-maverick': { inputTokenPrice: 0.20, outputTokenPrice: 0.60 },
-    'groq-llama3.3-70b': { inputTokenPrice: 0.59, outputTokenPrice: 0.79 },
-    'groq-llama3.1-8b-instant': { inputTokenPrice: 0.05, outputTokenPrice: 0.08 },
-    'groq-llama-4-scout': { inputTokenPrice: 0.11, outputTokenPrice: 0.34 },
-    
-    // Writer Models
-    'palmyra-fin-default': { inputTokenPrice: 5.00, outputTokenPrice: 12.00 },
-  };
-  
-  // Try exact match first
-  if (pricingMap[modelId]) {
-    return pricingMap[modelId];
-  }
-  
-  // Try partial matching for model families
-  for (const [key, pricing] of Object.entries(pricingMap)) {
-    if (modelId.includes(key) || key.includes(modelId)) {
-      return pricing;
-    }
-  }
-  
-  return null;
-}
 
 // Helper function to get consistent provider colors
 const getProviderColor = (provider: string) => {
@@ -117,6 +60,9 @@ export function PricingCharts() {
       
       if (!pricing) return null;
       
+      const avgPrice = getModelAveragePrice(modelName);
+      if (!avgPrice) return null;
+      
       return {
         model: getDisplayName(modelName),
         fullModel: modelName,
@@ -125,7 +71,7 @@ export function PricingCharts() {
         essayScore: essayModel ? essayModel.avgSelfGrade : 0,
         inputPrice: pricing.inputTokenPrice,
         outputPrice: pricing.outputTokenPrice,
-        avgPrice: (pricing.inputTokenPrice + pricing.outputTokenPrice) / 2,
+        avgPrice: avgPrice,
         totalCost: mcqModel ? mcqModel.totalCost : essayModel ? essayModel.totalApiCost : 0,
         modelType: mcqModel?.modelType || essayModel?.modelType || 'Non-Reasoning'
       };
@@ -173,22 +119,29 @@ export function PricingCharts() {
     };
   });
 
-  // Input vs Output pricing comparison
-  const pricingComparisonData = uniqueModels.slice(0, 10).map(model => ({
-    model: model!.model.length > 15 ? model!.model.substring(0, 15) + '...' : model!.model,
-    inputPrice: model!.inputPrice,
-    outputPrice: model!.outputPrice,
-    fullModel: model!.fullModel, // Use original model ID for logo lookup
-    modelType: model!.modelType
-  }));
 
-  // Cost efficiency (performance per dollar)
-  const costEfficiencyData = uniqueModels
+  // MCQ Cost efficiency (performance per dollar)
+  const mcqCostEfficiencyData = uniqueModels
     .map(model => ({
       model: model!.model,
       fullModel: model!.fullModel, // Add original model ID for logo lookup
       efficiency: model!.accuracy / model!.avgPrice, // accuracy per dollar
       accuracy: model!.accuracy,
+      price: model!.avgPrice,
+      provider: model!.provider,
+      modelType: model!.modelType
+    }))
+    .sort((a, b) => b.efficiency - a.efficiency)
+    .slice(0, 12);
+
+  // Essay Cost efficiency (performance per dollar)
+  const essayCostEfficiencyData = uniqueModels
+    .filter(model => model!.essayScore > 0) // Only include models with essay scores
+    .map(model => ({
+      model: model!.model,
+      fullModel: model!.fullModel,
+      efficiency: model!.essayScore / model!.avgPrice, // essay score per dollar
+      essayScore: model!.essayScore,
       price: model!.avgPrice,
       provider: model!.provider,
       modelType: model!.modelType
@@ -205,7 +158,7 @@ export function PricingCharts() {
         transition={{ duration: 0.6 }}
       >
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-xl font-light text-gray-900 dark:text-white tracking-wide mb-2">
             Price vs Performance Analysis
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -249,36 +202,87 @@ export function PricingCharts() {
           </ScatterChart>
         </ResponsiveContainer>
       </motion.div>
+{/* Provider Average Pricing - moved below */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <div className="mb-4">
+          <h3 className="text-xl font-light text-gray-900 dark:text-white tracking-wide mb-2">
+            Provider Average Pricing
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Average cost per 1M tokens by organization
+          </p>
+        </div>
+        
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={providerAvgData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+            <defs>
+              {providerAvgData.map((entry) => (
+                <linearGradient key={entry.provider} id={`provider-gradient-${entry.provider}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={entry.color} stopOpacity={0.8} />
+                  <stop offset="100%" stopColor={entry.color} stopOpacity={0.4} />
+                </linearGradient>
+              ))}
+            </defs>
+            <CartesianGrid strokeDasharray="2 2" stroke="currentColor" opacity={0.1} className="text-gray-400" />
+            <XAxis 
+              dataKey="provider" 
+              tick={{ fontSize: 10, fill: 'currentColor' }}
+              className="text-gray-600 dark:text-gray-400"
+              axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
+              tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
+              angle={-45}
+              textAnchor="end"
+              height={80}
+            />
+            <YAxis 
+              tick={{ fontSize: 11, fill: 'currentColor' }}
+              className="text-gray-600 dark:text-gray-400"
+              axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
+              tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
+            />
+            <Tooltip content={<ChartTooltip />} />
+            <Bar dataKey="avgPrice" radius={[4, 4, 0, 0]}>
+              {providerAvgData.map((entry) => (
+                <Cell key={entry.provider} fill={`url(#provider-gradient-${entry.provider})`} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </motion.div>
 
-      {/* Two column layout for remaining charts */}
+      {/* Two column layout for cost efficiency charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Provider Average Pricing */}
+        {/* Essay Cost Efficiency Ranking */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Provider Average Pricing
+            <h3 className="text-xl font-light text-gray-900 dark:text-white tracking-wide mb-2">
+              Essay Cost Efficiency
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Average cost per 1M tokens by organization
+              Essay performance per dollar (self-grade / avg price)
             </p>
           </div>
           
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={providerAvgData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+            <BarChart data={essayCostEfficiencyData} margin={{ top: 20, right: 20, left: 20, bottom: 60 }}>
               <defs>
-                <linearGradient id="providerPricingGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.8} />
-                  <stop offset="100%" stopColor="#1D4ED8" stopOpacity={0.4} />
+                <linearGradient id="essayEfficiencyGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.8} />
+                  <stop offset="100%" stopColor="#7C3AED" stopOpacity={0.4} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="2 2" stroke="currentColor" opacity={0.1} className="text-gray-400" />
               <XAxis 
-                dataKey="provider" 
-                tick={{ fontSize: 10, fill: 'currentColor' }}
+                dataKey="model" 
+                tick={{ fontSize: 9, fill: 'currentColor' }}
                 className="text-gray-600 dark:text-gray-400"
                 axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
                 tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
@@ -294,33 +298,33 @@ export function PricingCharts() {
               />
               <Tooltip content={<ChartTooltip />} />
               <Bar 
-                dataKey="avgPrice" 
-                fill="url(#providerPricingGradient)" 
+                dataKey="efficiency" 
+                fill="url(#essayEfficiencyGradient)" 
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
 
-        {/* Cost Efficiency Ranking */}
+        {/* MCQ Cost Efficiency Ranking */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
         >
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Cost Efficiency Ranking
+            <h3 className="text-xl font-light text-gray-900 dark:text-white tracking-wide mb-2">
+              MCQ Cost Efficiency
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Performance per dollar (accuracy / avg price)
+              MCQ performance per dollar (accuracy / avg price)
             </p>
           </div>
           
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={costEfficiencyData} margin={{ top: 20, right: 20, left: 20, bottom: 60 }}>
+            <BarChart data={mcqCostEfficiencyData} margin={{ top: 20, right: 20, left: 20, bottom: 60 }}>
               <defs>
-                <linearGradient id="efficiencyGradient" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="mcqEfficiencyGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#10B981" stopOpacity={0.8} />
                   <stop offset="100%" stopColor="#059669" stopOpacity={0.4} />
                 </linearGradient>
@@ -345,7 +349,7 @@ export function PricingCharts() {
               <Tooltip content={<ChartTooltip />} />
               <Bar 
                 dataKey="efficiency" 
-                fill="url(#efficiencyGradient)" 
+                fill="url(#mcqEfficiencyGradient)" 
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>
@@ -353,46 +357,7 @@ export function PricingCharts() {
         </motion.div>
       </div>
 
-      {/* Input vs Output Pricing - Full width */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            Input vs Output Token Pricing
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Comparison of input and output token costs ($/1M tokens)
-          </p>
-        </div>
-        
-        <ResponsiveContainer width="100%" height={350}>
-          <BarChart data={pricingComparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
-            <CartesianGrid strokeDasharray="2 2" stroke="currentColor" opacity={0.1} className="text-gray-400" />
-            <XAxis 
-              dataKey="model" 
-              tick={{ fontSize: 10, fill: 'currentColor' }}
-              className="text-gray-600 dark:text-gray-400"
-              axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
-              tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
-              angle={-45}
-              textAnchor="end"
-              height={80}
-            />
-            <YAxis 
-              tick={{ fontSize: 11, fill: 'currentColor' }}
-              className="text-gray-600 dark:text-gray-400"
-              axisLine={{ stroke: 'currentColor', strokeWidth: 1 }}
-              tickLine={{ stroke: 'currentColor', strokeWidth: 1 }}
-            />
-            <Tooltip content={<ChartTooltip />} />
-            <Bar dataKey="inputPrice" fill="#3B82F6" name="Input Price" radius={[2, 2, 0, 0]} />
-            <Bar dataKey="outputPrice" fill="#10B981" name="Output Price" radius={[2, 2, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </motion.div>
+      
     </div>
   );
 }

@@ -104,7 +104,7 @@ export function PerformanceScatterChart({ mcqData, essayData, className }: Perfo
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle className="font-semibold text-gray-900 dark:text-white">
+        <CardTitle className="text-gray-900 dark:text-white">
           Performance Comparison: MCQ vs Essay
         </CardTitle>
         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -227,7 +227,7 @@ export function PerformanceScatterChart({ mcqData, essayData, className }: Perfo
               x={margin.left + chartWidth / 2}
               y={height - 10}
               textAnchor="middle"
-              className="text-sm font-medium fill-gray-700 dark:fill-gray-300"
+              className="text-sm fill-gray-700 dark:fill-gray-300"
             >
               Essay Performance (Self Grade)
             </text>
@@ -237,7 +237,7 @@ export function PerformanceScatterChart({ mcqData, essayData, className }: Perfo
               textAnchor="middle"
               dominantBaseline="middle"
               transform={`rotate(-90 20 ${margin.top + chartHeight / 2})`}
-              className="text-sm font-medium fill-gray-700 dark:fill-gray-300"
+              className="text-sm fill-gray-700 dark:fill-gray-300"
             >
               MCQ Accuracy (%)
             </text>
@@ -295,7 +295,7 @@ export function PerformanceScatterChart({ mcqData, essayData, className }: Perfo
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <ProviderLogo modelName={hoveredPoint.model} className="w-5 h-5" />
-                    <span className="font-semibold text-gray-900 dark:text-white">
+                    <span className="text-gray-900 dark:text-white">
                       {getDisplayName(hoveredPoint.model)}
                     </span>
                   </div>
@@ -303,19 +303,19 @@ export function PerformanceScatterChart({ mcqData, essayData, className }: Perfo
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <span className="text-gray-600 dark:text-gray-400">MCQ Accuracy:</span>
-                      <div className="font-medium text-gray-900 dark:text-white">
+                      <div className="text-gray-900 dark:text-white">
                         {hoveredPoint.mcqScore.toFixed(1)}%
                       </div>
                     </div>
                     <div>
                       <span className="text-gray-600 dark:text-gray-400">Essay Grade:</span>
-                      <div className="font-medium text-gray-900 dark:text-white">
+                      <div className="text-gray-900 dark:text-white">
                         {hoveredPoint.essayScore.toFixed(2)}/4
                       </div>
                     </div>
                     <div>
                       <span className="text-gray-600 dark:text-gray-400">Overall:</span>
-                      <div className="font-medium text-gray-900 dark:text-white">
+                      <div className="text-gray-900 dark:text-white">
                         {hoveredPoint.overallScore.toFixed(1)}
                       </div>
                     </div>
@@ -330,7 +330,7 @@ export function PerformanceScatterChart({ mcqData, essayData, className }: Perfo
                   {hoveredPoint.contextLength && (
                     <div className="text-sm">
                       <span className="text-gray-600 dark:text-gray-400">Context: </span>
-                      <span className={`font-medium ${getContextLengthColor(hoveredPoint.contextLength)}`}>
+                      <span className={getContextLengthColor(hoveredPoint.contextLength)}>
                         {formatContextLength(hoveredPoint.contextLength)}
                       </span>
                     </div>
@@ -340,14 +340,14 @@ export function PerformanceScatterChart({ mcqData, essayData, className }: Perfo
                     <div className="flex justify-between text-sm">
                       <div>
                         <span className="text-gray-600 dark:text-gray-400">Cost: </span>
-                        <span className="font-medium text-gray-900 dark:text-white">
+                        <span className="text-gray-900 dark:text-white">
                           ${hoveredPoint.totalCost.toFixed(2)}
                         </span>
                       </div>
                       {hoveredPoint.avgTime && (
                         <div>
                           <span className="text-gray-600 dark:text-gray-400">Avg Time: </span>
-                          <span className="font-medium text-gray-900 dark:text-white">
+                          <span className="text-gray-900 dark:text-white">
                             {hoveredPoint.avgTime.toFixed(1)}s
                           </span>
                         </div>

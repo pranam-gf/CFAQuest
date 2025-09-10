@@ -106,18 +106,25 @@ export function searchData<T>(data: T[], searchTerm: string, searchKeys: (keyof 
 export function calculateOverallScores(mcqData: McqEvaluation[], essayData: EssayEvaluation[]) {
   const modelScores: { [key: string]: { mcqScore?: number; essayScore?: number } } = {};
 
+  // Get the best MCQ score for each model
   mcqData.forEach(mcq => {
     if (!modelScores[mcq.model]) {
       modelScores[mcq.model] = {};
     }
-    modelScores[mcq.model].mcqScore = mcq.accuracy;
+    if (!modelScores[mcq.model].mcqScore || mcq.accuracy > modelScores[mcq.model].mcqScore!) {
+      modelScores[mcq.model].mcqScore = mcq.accuracy;
+    }
   });
 
+  // Get the best essay self-grade for each model (no normalization, no ROUGE-L)
   essayData.forEach(essay => {
     if (!modelScores[essay.model]) {
       modelScores[essay.model] = {};
     }
-    modelScores[essay.model].essayScore = essay.avgSelfGrade / 4; // Normalize essay score to be between 0 and 1
+    
+    if (!modelScores[essay.model].essayScore || essay.avgSelfGrade > modelScores[essay.model].essayScore!) {
+      modelScores[essay.model].essayScore = essay.avgSelfGrade;
+    }
   });
 
   const overallScores: { model: string; overallScore: number }[] = [];
@@ -125,6 +132,7 @@ export function calculateOverallScores(mcqData: McqEvaluation[], essayData: Essa
   for (const model in modelScores) {
     const scores = modelScores[model];
     if (scores.mcqScore !== undefined && scores.essayScore !== undefined) {
+      // Simple average of best MCQ accuracy and best essay self-grade
       overallScores.push({
         model,
         overallScore: (scores.mcqScore + scores.essayScore) / 2,

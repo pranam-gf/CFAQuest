@@ -43,16 +43,30 @@ export default function Methodology() {
                 <div className="text-gray-600 dark:text-white/70 leading-relaxed font-light text-sm">
                   [1] Pranam Shetty, Abhisek Upadhayaya, Parth Mitesh Shah, Srikanth Jagabathula, Shilpi Nayak, Anna Joo Fee, 
                   "Advanced Financial Reasoning at Scale: A Comprehensive Evaluation of Large Language Models on CFA Level III," 
-                  <em>arXiv preprint arXiv:2507.02954</em>, 2025. [Online]. 
+                  <em>arXiv preprint arXiv:2507.02954</em>, 2025.
                   <br />
-                  <a 
-                    href="https://arxiv.org/abs/2507.02954" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
-                  >
-                    https://arxiv.org/abs/2507.02954
-                  </a>
+                  <div className="flex flex-wrap justify-center items-center gap-4 mt-2">
+                    <a 
+                      href="https://arxiv.org/abs/2507.02954" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
+                    >
+                      arXiv Paper
+                    </a>
+                    <span className="text-gray-400">•</span>
+                    <div className="flex items-center">
+                      <a 
+                        href="/paper.pdf" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
+                      >
+                        View PDF
+                      </a>
+                      <span className="text-xs bg-green-500/20 text-green-700 dark:text-green-400 px-2 py-1 rounded-full ml-2">Updated with Human Grading</span>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             </div>

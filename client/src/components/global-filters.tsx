@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getProviderInfo } from "@/lib/provider-mapping";
@@ -109,12 +109,12 @@ function ProviderSelectionDropdown({ selectedProviders, onSelectProvider }: Prov
           >
             <div className="p-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-6 text-gray-500 dark:text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400 pointer-events-none" />
                 <Input
                   placeholder="Search providers..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-white/80 dark:bg-gray-800/50 border border-gray-300/50 dark:border-gray-600 rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500/50 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                  className="pl-10 pr-4 text-sm bg-white/80 dark:bg-gray-800/50 border-gray-300/50 dark:border-gray-600"
                 />
               </div>
             </div>
@@ -126,7 +126,9 @@ function ProviderSelectionDropdown({ selectedProviders, onSelectProvider }: Prov
                   return (
                     <div
                       key={provider.value}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200/50 dark:hover:bg-gray-800/50 cursor-pointer"
+                      className={`flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200/50 dark:hover:bg-gray-800/50 cursor-pointer ${
+                        isSelected ? 'bg-gray-100/30 dark:bg-gray-700/30' : ''
+                      }`}
                       onClick={() => onSelectProvider(provider.value)}
                     >
                       <Checkbox
@@ -638,6 +640,141 @@ function ViewFilterDropdown({ selectedView, onSelectView }: ViewFilterDropdownPr
   );
 }
 
+interface FilterTagProps {
+  label: string;
+  onRemove: () => void;
+  icon?: React.ReactNode;
+}
+
+function FilterTag({ label, onRemove, icon }: FilterTagProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8, x: 20 }}
+      animate={{ opacity: 1, scale: 1, x: 0 }}
+      exit={{ opacity: 0, scale: 0.8, x: 20 }}
+      transition={{ duration: 0.15, ease: "easeOut" }}
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-transparent text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full border border-blue-200 dark:border-blue-700"
+    >
+      {icon && (
+        <span className="flex items-center bg-white dark:bg-gray-800 rounded-full p-0.5">
+          {icon}
+        </span>
+      )}
+      <span>{label}</span>
+      <button
+        onClick={onRemove}
+        className="flex items-center justify-center w-3.5 h-3.5 rounded-full hover:bg-blue-200 dark:hover:bg-blue-700/50 transition-colors"
+      >
+        <X className="w-2.5 h-2.5" />
+      </button>
+    </motion.div>
+  );
+}
+
+interface ActiveFiltersProps {
+  providerFilter: string | string[];
+  onRemoveProvider: (provider: string) => void;
+  
+  contextLengthFilter: string | string[];
+  onRemoveContextLength: (contextLength: string) => void;
+  
+  modelTypeFilter?: string;
+  onRemoveModelType?: () => void;
+  
+  strategyFilter?: string | string[];
+  onRemoveStrategy?: (strategy: string) => void;
+  
+  viewFilter?: string;
+  onRemoveView?: () => void;
+}
+
+function ActiveFilters({
+  providerFilter,
+  onRemoveProvider,
+  contextLengthFilter,
+  onRemoveContextLength,
+  modelTypeFilter,
+  onRemoveModelType,
+  strategyFilter,
+  onRemoveStrategy,
+  viewFilter,
+  onRemoveView,
+}: ActiveFiltersProps) {
+  const activeProviders = Array.isArray(providerFilter) ? providerFilter.filter(v => v !== 'all') : (providerFilter && providerFilter !== 'all' ? [providerFilter] : []);
+  const activeContextLengths = Array.isArray(contextLengthFilter) ? contextLengthFilter.filter(v => v !== 'all') : (contextLengthFilter && contextLengthFilter !== 'all' ? [contextLengthFilter] : []);
+  const activeStrategies = Array.isArray(strategyFilter) ? strategyFilter.filter(v => v !== 'all') : (strategyFilter && strategyFilter !== 'all' ? [strategyFilter] : []);
+
+  const hasActiveFilters = activeProviders.length > 0 || 
+                          activeContextLengths.length > 0 || 
+                          (modelTypeFilter && modelTypeFilter !== 'all') ||
+                          activeStrategies.length > 0 ||
+                          (viewFilter && viewFilter !== 'overall');
+
+  if (!hasActiveFilters) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 py-2">
+      <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Active filters:</span>
+      <AnimatePresence>
+        {/* Provider filter tags */}
+        {activeProviders.map(provider => {
+          const modelName = getModelNameForProvider(provider);
+          return (
+            <FilterTag
+              key={`provider-${provider}`}
+              label={provider}
+              icon={<ProviderLogo modelName={modelName} size="xs" />}
+              onRemove={() => onRemoveProvider(provider)}
+            />
+          );
+        })}
+        
+        {/* Context length filter tags */}
+        {activeContextLengths.map(contextLength => {
+          const option = CONTEXT_LENGTH_OPTIONS.find(opt => opt.value === contextLength);
+          return (
+            <FilterTag
+              key={`context-${contextLength}`}
+              label={option?.label || contextLength}
+              onRemove={() => onRemoveContextLength(contextLength)}
+            />
+          );
+        })}
+        
+        {/* Model type filter tag */}
+        {modelTypeFilter && modelTypeFilter !== 'all' && onRemoveModelType && (
+          <FilterTag
+            key="model-type"
+            label={MODEL_TYPE_OPTIONS.find(opt => opt.value === modelTypeFilter)?.label || modelTypeFilter}
+            onRemove={onRemoveModelType}
+          />
+        )}
+        
+        {/* Strategy filter tags */}
+        {activeStrategies.map(strategy => {
+          const option = STRATEGY_OPTIONS.find(opt => opt.value === strategy);
+          return (
+            <FilterTag
+              key={`strategy-${strategy}`}
+              label={option?.label || strategy}
+              onRemove={() => onRemoveStrategy?.(strategy)}
+            />
+          );
+        })}
+        
+        {/* View filter tag */}
+        {viewFilter && viewFilter !== 'overall' && onRemoveView && (
+          <FilterTag
+            key="view"
+            label={VIEW_TYPE_OPTIONS.find(opt => opt.value === viewFilter)?.label || viewFilter}
+            onRemove={onRemoveView}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 interface GlobalFiltersProps {
   // Provider filter (now supports multi-select)
   providerFilter: string | string[];
@@ -697,85 +834,125 @@ export function GlobalFilters({
     }
   };
 
+  // Handler functions for removing filters
+  const handleRemoveProvider = (provider: string) => {
+    const currentProviders = Array.isArray(providerFilter) ? providerFilter.filter(v => v !== 'all') : (providerFilter && providerFilter !== 'all' ? [providerFilter] : []);
+    const updatedProviders = currentProviders.filter(id => id !== provider);
+    onProviderFilterChange(updatedProviders);
+  };
 
-  // Create column visibility dropdown options
-  const columnOptions = availableColumns.map(col => ({
-    value: col.key,
-    label: col.label,
-    checked: visibleColumns.includes(col.key)
-  }));
+  const handleRemoveContextLength = (contextLength: string) => {
+    const currentContextLengths = Array.isArray(contextLengthFilter) ? contextLengthFilter.filter(v => v !== 'all') : (contextLengthFilter && contextLengthFilter !== 'all' ? [contextLengthFilter] : []);
+    const updatedContextLengths = currentContextLengths.filter(id => id !== contextLength);
+    onContextLengthFilterChange(updatedContextLengths);
+  };
+
+  const handleRemoveModelType = () => {
+    onModelTypeFilterChange?.('all');
+  };
+
+  const handleRemoveStrategy = (strategy: string) => {
+    if (Array.isArray(strategyFilter)) {
+      const currentStrategies = strategyFilter.filter(v => v !== 'all');
+      const updatedStrategies = currentStrategies.filter(id => id !== strategy);
+      onStrategyFilterChange?.(updatedStrategies);
+    } else {
+      onStrategyFilterChange?.('all');
+    }
+  };
+
+  const handleRemoveView = () => {
+    onViewFilterChange?.('overall');
+  };
 
   return (
-    <div className={cn("flex flex-wrap lg:flex-nowrap items-center gap-3 flex-1", className)}>
-      {/* View Filter */}
-      {viewFilter && onViewFilterChange && (
-        <ViewFilterDropdown
-          selectedView={viewFilter}
-          onSelectView={onViewFilterChange}
-        />
-      )}
-      
-      {/* Provider Filter - Custom dropdown with search and logos */}
-      <ProviderSelectionDropdown
-        selectedProviders={Array.isArray(providerFilter) ? providerFilter.filter(v => v !== 'all') : (providerFilter && providerFilter !== 'all' ? [providerFilter] : [])}
-        onSelectProvider={(providerId) => {
-          const currentProviders = Array.isArray(providerFilter) ? providerFilter.filter(v => v !== 'all') : (providerFilter && providerFilter !== 'all' ? [providerFilter] : []);
-          const updatedProviders = currentProviders.includes(providerId)
-            ? currentProviders.filter(id => id !== providerId)
-            : [...currentProviders, providerId];
-          onProviderFilterChange(updatedProviders);
-        }}
-      />
-      
-      {/* Context Length Filter - Custom dropdown with search */}
-      <ContextLengthSelectionDropdown
-        selectedContextLengths={Array.isArray(contextLengthFilter) ? contextLengthFilter.filter(v => v !== 'all') : (contextLengthFilter && contextLengthFilter !== 'all' ? [contextLengthFilter] : [])}
-        onSelectContextLength={(contextLengthId) => {
-          const currentContextLengths = Array.isArray(contextLengthFilter) ? contextLengthFilter.filter(v => v !== 'all') : (contextLengthFilter && contextLengthFilter !== 'all' ? [contextLengthFilter] : []);
-          const updatedContextLengths = currentContextLengths.includes(contextLengthId)
-            ? currentContextLengths.filter(id => id !== contextLengthId)
-            : [...currentContextLengths, contextLengthId];
-          onContextLengthFilterChange(updatedContextLengths);
-        }}
-      />
-
-      {/* Model Type Filter */}
-      {modelTypeFilter !== undefined && onModelTypeFilterChange && (
-        <ModelTypeSelectionDropdown
-          selectedModelType={modelTypeFilter}
-          onSelectModelType={onModelTypeFilterChange}
-        />
-      )}
-
-      {/* Strategy Filter */}
-      {strategyFilter !== undefined && onStrategyFilterChange && (
-        Array.isArray(strategyFilter) ? (
-          <StrategyMultiSelectionDropdown
-            selectedStrategies={strategyFilter.filter(v => v !== 'all')}
-            onSelectStrategy={(strategyId) => {
-              const currentStrategies = strategyFilter.filter(v => v !== 'all');
-              const updatedStrategies = currentStrategies.includes(strategyId)
-                ? currentStrategies.filter(id => id !== strategyId)
-                : [...currentStrategies, strategyId];
-              onStrategyFilterChange(updatedStrategies);
-            }}
+    <div className={cn("space-y-3", className)}>
+      {/* Filter Controls */}
+      <div className="flex flex-wrap lg:flex-nowrap items-center gap-3 flex-1">
+        {/* View Filter */}
+        {viewFilter && onViewFilterChange && (
+          <ViewFilterDropdown
+            selectedView={viewFilter}
+            onSelectView={onViewFilterChange}
           />
-        ) : (
-          <StrategySelectionDropdown
-            selectedStrategy={strategyFilter}
-            onSelectStrategy={onStrategyFilterChange}
+        )}
+        
+        {/* Provider Filter - Custom dropdown with search and logos */}
+        <ProviderSelectionDropdown
+          selectedProviders={Array.isArray(providerFilter) ? providerFilter.filter(v => v !== 'all') : (providerFilter && providerFilter !== 'all' ? [providerFilter] : [])}
+          onSelectProvider={(providerId) => {
+            const currentProviders = Array.isArray(providerFilter) ? providerFilter.filter(v => v !== 'all') : (providerFilter && providerFilter !== 'all' ? [providerFilter] : []);
+            const updatedProviders = currentProviders.includes(providerId)
+              ? currentProviders.filter(id => id !== providerId)
+              : [...currentProviders, providerId];
+            onProviderFilterChange(updatedProviders);
+          }}
+        />
+        
+        {/* Context Length Filter - Custom dropdown with search */}
+        <ContextLengthSelectionDropdown
+          selectedContextLengths={Array.isArray(contextLengthFilter) ? contextLengthFilter.filter(v => v !== 'all') : (contextLengthFilter && contextLengthFilter !== 'all' ? [contextLengthFilter] : [])}
+          onSelectContextLength={(contextLengthId) => {
+            const currentContextLengths = Array.isArray(contextLengthFilter) ? contextLengthFilter.filter(v => v !== 'all') : (contextLengthFilter && contextLengthFilter !== 'all' ? [contextLengthFilter] : []);
+            const updatedContextLengths = currentContextLengths.includes(contextLengthId)
+              ? currentContextLengths.filter(id => id !== contextLengthId)
+              : [...currentContextLengths, contextLengthId];
+            onContextLengthFilterChange(updatedContextLengths);
+          }}
+        />
+
+        {/* Model Type Filter */}
+        {modelTypeFilter !== undefined && onModelTypeFilterChange && (
+          <ModelTypeSelectionDropdown
+            selectedModelType={modelTypeFilter}
+            onSelectModelType={onModelTypeFilterChange}
           />
-        )
-      )}
+        )}
 
-      {/* Additional Filters */}
-      {additionalFilters}
+        {/* Strategy Filter */}
+        {strategyFilter !== undefined && onStrategyFilterChange && (
+          Array.isArray(strategyFilter) ? (
+            <StrategyMultiSelectionDropdown
+              selectedStrategies={strategyFilter.filter(v => v !== 'all')}
+              onSelectStrategy={(strategyId) => {
+                const currentStrategies = strategyFilter.filter(v => v !== 'all');
+                const updatedStrategies = currentStrategies.includes(strategyId)
+                  ? currentStrategies.filter(id => id !== strategyId)
+                  : [...currentStrategies, strategyId];
+                onStrategyFilterChange(updatedStrategies);
+              }}
+            />
+          ) : (
+            <StrategySelectionDropdown
+              selectedStrategy={strategyFilter}
+              onSelectStrategy={onStrategyFilterChange}
+            />
+          )
+        )}
 
-      {/* Column Visibility Dropdown - Custom dropdown with search */}
-      <ColumnSelectionDropdown
-        availableColumns={availableColumns}
-        visibleColumns={visibleColumns}
-        onToggleColumn={toggleColumn}
+        {/* Additional Filters */}
+        {additionalFilters}
+
+        {/* Column Visibility Dropdown - Custom dropdown with search */}
+        <ColumnSelectionDropdown
+          availableColumns={availableColumns}
+          visibleColumns={visibleColumns}
+          onToggleColumn={toggleColumn}
+        />
+      </div>
+
+      {/* Active Filters Tags */}
+      <ActiveFilters
+        providerFilter={providerFilter}
+        onRemoveProvider={handleRemoveProvider}
+        contextLengthFilter={contextLengthFilter}
+        onRemoveContextLength={handleRemoveContextLength}
+        modelTypeFilter={modelTypeFilter}
+        onRemoveModelType={handleRemoveModelType}
+        strategyFilter={strategyFilter}
+        onRemoveStrategy={handleRemoveStrategy}
+        viewFilter={viewFilter}
+        onRemoveView={handleRemoveView}
       />
     </div>
   );

@@ -89,9 +89,28 @@ export function HeroSection() {
                 transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
                 className="mt-2 sm:mt-3 inline-flex items-center gap-1 bg-white/50 dark:bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl px-4 sm:px-6 py-2 border border-gray-300 dark:border-white/20 shadow-md shadow-gray-200/10 dark:shadow-black/10 mx-2"
               >
-                <span className="text-xs sm:text-sm text-slate-500 dark:text-gray-400 font-bold uppercase tracking-wide text-center">
+                <a 
+                  href="/paper.pdf" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-xs sm:text-sm text-slate-500 dark:text-gray-400 font-bold uppercase tracking-wide text-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 flex items-center gap-1"
+                >
                 Benchmarked on CFA Level 3
-                </span>
+                <svg 
+                  width="12" 
+                  height="12" 
+                  viewBox="0 0 16 16" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className="opacity-60"
+                >
+                  <path d="M6 2L14 2L14 10" />
+                  <path d="M14 2L2 14" />
+                </svg>
+                </a>
               </motion.div>
             </div>
           </div>

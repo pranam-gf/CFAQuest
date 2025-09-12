@@ -114,7 +114,7 @@ function ProviderSelectionDropdown({ selectedProviders, onSelectProvider }: Prov
                   placeholder="Search providers..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 text-sm bg-white/80 dark:bg-gray-800/50 border-gray-300/50 dark:border-gray-600"
+                  className="pl-10 pr-4 text-sm bg-white/80 dark:bg-gray-800/50 border-gray-300/50 dark:border-gray-600 dark:text-gray-200"
                 />
               </div>
             </div>

@@ -13,15 +13,8 @@
       }
       
       /* Dark mode support */
-      @media (prefers-color-scheme: dark) {
-        body {
-          background: linear-gradient(135deg, #000000, #111827, #1f2937);
-        }
-      }
-      
-      /* Override the Tailwind bg-background class with !important */
-      body {
-        background: linear-gradient(135deg, #f8fafc, rgba(239, 246, 255, 0.5), rgba(241, 245, 249, 0.3)) !important;
+      .dark body {
+        background: linear-gradient(135deg, #000000, #111827, #1f2937);
       }
       
       /* Loading state styles */
@@ -31,6 +24,20 @@
     </style>
   </head>
   <body>
+    <script>
+      // Prevent FOUC by immediately applying theme before React loads
+      (function() {
+        const storageKey = 'cfa-arena-theme';
+        const theme = localStorage.getItem(storageKey) || 'light';
+        const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.add('light');
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->

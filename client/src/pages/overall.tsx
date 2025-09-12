@@ -257,8 +257,8 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
       className: 'text-center w-24',
       tooltip: 'Essay Score Explanation',
       tooltipContent: {
-        'Score': 'Self-Grade total from GPT-4.1 evaluation',
         'Rubric': 'Based on CFA Level 3 scoring rubric',
+        'Evaluation': 'Self-Grade total from GPT-4.1 evaluation'
       },
       render: (value: any, row: any) => {
         const essayMatch = searchedEssayData.find(m => m.model === row.model);

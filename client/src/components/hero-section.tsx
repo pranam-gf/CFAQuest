@@ -93,7 +93,7 @@ export function HeroSection() {
                   href="/paper.pdf" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="group relative inline-flex items-center gap-2 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2 border-2 border-blue-200/40 dark:border-blue-300/30 hover:bg-blue-50/80 dark:hover:bg-blue-900/20 hover:border-blue-300/60 dark:hover:border-blue-400/50 hover:-translate-y-1 transition-all duration-300"
+                  className="group relative inline-flex items-center gap-2 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2 border-2 border-blue-200/40 dark:border-blue-300/30 hover:bg-blue-50/80 dark:hover:bg-blue-900/20 hover:border-blue-300/60 dark:hover:border-blue-400/50 transition-all duration-300 before:absolute before:bottom-[-10%] before:left-1/2 before:z-[0] before:h-[15%] before:w-[80%] before:-translate-x-1/2 before:bg-blue-500/30 before:blur-md before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300"
                 >
                   {/* CFA Badge Icon */}
                   <div className="flex items-center justify-center w-15 h-15 sm:w-15 sm:h-15 rounded-full bg-transparent">
@@ -104,7 +104,7 @@ export function HeroSection() {
                     />
                   </div>
                   
-                  <span className="text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200 transition-all duration-200">
+                  <span className="text-sm sm:text-base font-semibold text-slate-600 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-all duration-200">
                     Benchmarked on CFA Level 3
                   </span>
                   

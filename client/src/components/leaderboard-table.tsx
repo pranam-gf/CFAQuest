@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Check, X, ChevronDown } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Check, X, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
@@ -66,6 +66,10 @@ export function LeaderboardTable<T extends Record<string, any>>({
   const [internalSortKey, setInternalSortKey] = useState<string>("");
   const [internalSortDirection, setInternalSortDirection] = useState<'asc' | 'desc'>('desc');
   const [displayCount, setDisplayCount] = useState<number>(10);
+
+  useEffect(() => {
+    setDisplayCount(10);
+  }, [data.length]);
 
   const currentSortKey = sortKey || internalSortKey;
   const currentSortDirection = sortDirection || internalSortDirection;
@@ -225,13 +229,19 @@ export function LeaderboardTable<T extends Record<string, any>>({
 
   const renderHeader = (column: ColumnDefinition<T>) => {
     if (column.sortable) {
+      const isCurrentSort = currentSortKey === column.key;
+      const SortIcon = isCurrentSort 
+        ? (currentSortDirection === 'desc' ? ArrowDown : ArrowUp)
+        : ArrowUpDown;
+      
       return (
         <Button 
           variant="ghost" 
           onClick={() => handleSort(column.key)} 
           className="h-auto p-0 font-medium dark:text-white"
         >
-          {column.label} <ArrowUpDown className="ml-1 w-3 h-3" />
+          {column.label} 
+          <SortIcon className="ml-1 w-3 h-3" />
         </Button>
       );
     }

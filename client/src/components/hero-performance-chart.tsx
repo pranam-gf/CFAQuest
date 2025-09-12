@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ProviderLogo } from "@/components/provider-logo";
 import { McqEvaluation, EssayEvaluation } from "@/types/models";
@@ -240,10 +240,23 @@ export function HeroPerformanceChart() {
   const [hoveredPoint, setHoveredPoint] = useState<ChartDataPoint | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [filterType, setFilterType] = useState<'all' | 'reasoning' | 'non-reasoning'>('all');
+  const [isMobile, setIsMobile] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const { data: mcqData = [] } = useQuery<McqEvaluation[]>({ queryKey: ["/api/mcq-evaluations"] });
   const { data: essayData = [] } = useQuery<EssayEvaluation[]>({ queryKey: ["/api/essay-evaluations"] });
+
+  // Responsive design hook
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const chartData: ChartDataPoint[] = [];
   const mcqMap = new Map(mcqData.map(item => [item.model, item]));
@@ -286,10 +299,12 @@ export function HeroPerformanceChart() {
   reasoningModels.sort((a, b) => a.essayScore - b.essayScore);
   nonReasoningModels.sort((a, b) => a.essayScore - b.essayScore);
 
-  // Fixed width to fit properly without horizontal scaling
-  const width = 1100;
-  const height = 700;
-  const margin = { top: 100, right: 100, bottom: 120, left: 60 };
+  // Responsive dimensions
+  const width = isMobile ? 380 : 1100;
+  const height = isMobile ? 500 : 700;
+  const margin = isMobile 
+    ? { top: 60, right: 40, bottom: 80, left: 40 }
+    : { top: 100, right: 100, bottom: 120, left: 60 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
@@ -310,8 +325,9 @@ export function HeroPerformanceChart() {
 
   // Generate evenly spaced ticks for the focused range (0.75 to 1.79)
   const xTicks = [];
-  const xStep = (xMax - xMin) / 10; // Create 10 intervals for good spacing
-  for (let i = 0; i <= 10; i++) {
+  const tickCount = isMobile ? 5 : 10; // Fewer ticks on mobile
+  const xStep = (xMax - xMin) / tickCount;
+  for (let i = 0; i <= tickCount; i++) {
     const tickValue = xMin + (i * xStep);
     xTicks.push(Math.round(tickValue * 100) / 100); // Round to 2 decimal places
   }
@@ -334,7 +350,7 @@ export function HeroPerformanceChart() {
     
     const topLabelsX: number[] = [];
     const bottomLabelsX: number[] = [];
-    const minPixelDistance = 50; // Adjust this threshold
+    const minPixelDistance = isMobile ? 30 : 50; // Smaller threshold on mobile
 
     sortedByXPosition.forEach((model, index) => {
       const currentX = margin.left + xScale(model.essayScore);
@@ -389,7 +405,7 @@ export function HeroPerformanceChart() {
   };
 
   return (
-    <div className="relative w-full">
+    <div ref={containerRef} className="relative w-full">
       {chartData.length === 0 ? (
         <div
           className="flex items-center justify-center bg-white/30 dark:bg-white/5 backdrop-blur-md rounded-3xl border border-white/40 dark:border-white/10 w-full"
@@ -403,7 +419,7 @@ export function HeroPerformanceChart() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="min-w-fit flex justify-center"
+            className={`${isMobile ? 'w-full overflow-x-auto' : 'min-w-fit'} flex justify-center`}
           >
             <svg ref={svgRef} width={width} height={height} className="rounded-xl bg-transparent">
               <defs>
@@ -446,7 +462,7 @@ export function HeroPerformanceChart() {
                       x={margin.left + xScale(tick)} 
                       y={margin.top + chartHeight + 20} 
                       textAnchor="middle" 
-                      className="text-xs fill-slate-600 dark:fill-slate-400"
+                      className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-slate-600 dark:fill-slate-400`}
                     >
                       {tick}
                     </text>
@@ -468,14 +484,16 @@ export function HeroPerformanceChart() {
                       y={margin.top + yScale(tick)} 
                       textAnchor="end" 
                       dominantBaseline="middle" 
-                      className="text-xs fill-slate-600 dark:fill-slate-400"
+                      className={`${isMobile ? 'text-[10px]' : 'text-xs'} fill-slate-600 dark:fill-slate-400`}
                     >
                       {tick}%
                     </text>
                   </g>
                 ))}
-                <text x={margin.left + chartWidth / 2} y={margin.top + chartHeight + 50} textAnchor="middle" className="text-sm font-medium fill-slate-700 dark:fill-slate-300">Essay Score (ROUGE-L + Self Grade Avg)</text>
-                <text x={-margin.top - chartHeight / 2} y={12} textAnchor="middle" transform="rotate(-90)" className="text-sm font-medium fill-slate-700 dark:fill-slate-300">MCQ Accuracy (%)</text>
+                <text x={margin.left + chartWidth / 2} y={margin.top + chartHeight + 50} textAnchor="middle" className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium fill-slate-700 dark:fill-slate-300`}>
+                  {isMobile ? 'Essay Score' : 'Essay Score (ROUGE-L + Self Grade Avg)'}
+                </text>
+                <text x={-margin.top - chartHeight / 2} y={12} textAnchor="middle" transform="rotate(-90)" className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium fill-slate-700 dark:fill-slate-300`}>MCQ Accuracy (%)</text>
               </g>
 
               {/* Connecting lines for reasoning models */}
@@ -555,30 +573,38 @@ export function HeroPerformanceChart() {
                           x={margin.left + xScale(point.essayScore)}
                           y={margin.top + yScale(point.mcqScore) + yOffset}
                           textAnchor="middle"
-                          className={`text-xs font-medium fill-slate-700 dark:fill-slate-300 pointer-events-none transition-all duration-200 ${
+                          className={`${isMobile ? 'text-[8px]' : 'text-xs'} font-medium fill-slate-700 dark:fill-slate-300 pointer-events-none transition-all duration-200 ${
                             hoveredPoint && hoveredPoint.modelType !== point.modelType ? 'hidden' : ''
                           }`}
-                          style={{ fontSize: '10px' }}
+                          style={{ fontSize: isMobile ? '8px' : '10px' }}
                         >
                           {isSameTypeAsHovered ? getDisplayName(point.model) : getShortDisplayName(point.model)}
                         </text>
                       );
                     })()}
                     
-                    <foreignObject x={margin.left + xScale(point.essayScore) - 20} y={margin.top + yScale(point.mcqScore) - 20} width={40} height={40} className="cursor-pointer" onMouseMove={(e) => handleMouseMove(e, point)} onMouseLeave={handleMouseLeave} onClick={() => {
-                      const website = getModelWebsite(point.model);
-                      if (website) {
-                        window.open(website, '_blank', 'noopener,noreferrer');
-                      }
-                    }}>
-                      <div className={`w-10 h-10 transition-all duration-200 ${
+                    <foreignObject 
+                      x={margin.left + xScale(point.essayScore) - (isMobile ? 15 : 20)} 
+                      y={margin.top + yScale(point.mcqScore) - (isMobile ? 15 : 20)} 
+                      width={isMobile ? 30 : 40} 
+                      height={isMobile ? 30 : 40} 
+                      className="cursor-pointer" 
+                      onMouseMove={(e) => handleMouseMove(e, point)} 
+                      onMouseLeave={handleMouseLeave} 
+                      onClick={() => {
+                        const website = getModelWebsite(point.model);
+                        if (website) {
+                          window.open(website, '_blank', 'noopener,noreferrer');
+                        }
+                      }}>
+                      <div className={`${isMobile ? 'w-7 h-7' : 'w-10 h-10'} transition-all duration-200 ${
                         hoveredPoint?.model === point.model 
                           ? 'scale-125 drop-shadow-lg' 
                           : hoveredPoint && hoveredPoint.modelType !== point.modelType
                             ? 'hover:scale-110 opacity-0 pointer-events-none' 
                             : 'hover:scale-110'
                       } overflow-visible flex items-center justify-center`}>
-                        <ProviderLogo modelName={point.model} className="w-7 h-7" />
+                        <ProviderLogo modelName={point.model} className={isMobile ? 'w-5 h-5' : 'w-7 h-7'} />
                       </div>
                     </foreignObject>
                   </motion.g>
@@ -586,7 +612,7 @@ export function HeroPerformanceChart() {
                 })}
               </g>
 
-              {/* Legend - positioned at bottom right */}
+              {/* Legend - positioned at bottom right, responsive */}
               <g className="legend" opacity="0.9">
                 
                 {/* Reasoning Models Legend */}
@@ -595,23 +621,23 @@ export function HeroPerformanceChart() {
                   onClick={() => setFilterType(filterType === 'reasoning' ? 'all' : 'reasoning')}
                 >
                   <line
-                    x1={margin.left + chartWidth - 130}
-                    y1={margin.top + chartHeight - 65}
-                    x2={margin.left + chartWidth - 110}
-                    y2={margin.top + chartHeight - 65}
+                    x1={margin.left + chartWidth - (isMobile ? 100 : 130)}
+                    y1={margin.top + chartHeight - (isMobile ? 45 : 65)}
+                    x2={margin.left + chartWidth - (isMobile ? 85 : 110)}
+                    y2={margin.top + chartHeight - (isMobile ? 45 : 65)}
                     stroke="rgb(16, 185, 129)"
                     strokeWidth={filterType === 'reasoning' ? 3 : 2}
                     strokeDasharray="4,4"
                     strokeOpacity={filterType === 'non-reasoning' ? 0.3 : 1}
                   />
                   <text
-                    x={margin.left + chartWidth - 105}
-                    y={margin.top + chartHeight - 61}
-                    className={`text-xs ${filterType === 'reasoning' ? 'fill-emerald-600 dark:fill-emerald-400 font-semibold' : 'fill-slate-700 dark:fill-slate-300'}`}
+                    x={margin.left + chartWidth - (isMobile ? 80 : 105)}
+                    y={margin.top + chartHeight - (isMobile ? 41 : 61)}
+                    className={`${isMobile ? 'text-[10px]' : 'text-xs'} ${filterType === 'reasoning' ? 'fill-emerald-600 dark:fill-emerald-400 font-semibold' : 'fill-slate-700 dark:fill-slate-300'}`}
                     dominantBaseline="middle"
                     opacity={filterType === 'non-reasoning' ? 0.5 : 1}
                   >
-                    Reasoning Models
+                    {isMobile ? 'Reasoning' : 'Reasoning Models'}
                   </text>
                 </g>
                 
@@ -621,23 +647,23 @@ export function HeroPerformanceChart() {
                   onClick={() => setFilterType(filterType === 'non-reasoning' ? 'all' : 'non-reasoning')}
                 >
                   <line
-                    x1={margin.left + chartWidth - 130}
-                    y1={margin.top + chartHeight - 45}
-                    x2={margin.left + chartWidth - 110}
-                    y2={margin.top + chartHeight - 45}
+                    x1={margin.left + chartWidth - (isMobile ? 100 : 130)}
+                    y1={margin.top + chartHeight - (isMobile ? 25 : 45)}
+                    x2={margin.left + chartWidth - (isMobile ? 85 : 110)}
+                    y2={margin.top + chartHeight - (isMobile ? 25 : 45)}
                     stroke="rgb(59, 130, 246)"
                     strokeWidth={filterType === 'non-reasoning' ? 3 : 2}
                     strokeDasharray="8,4"
                     strokeOpacity={filterType === 'reasoning' ? 0.3 : 1}
                   />
                   <text
-                    x={margin.left + chartWidth - 105}
-                    y={margin.top + chartHeight - 41}
-                    className={`text-xs ${filterType === 'non-reasoning' ? 'fill-blue-600 dark:fill-blue-400 font-semibold' : 'fill-slate-700 dark:fill-slate-300'}`}
+                    x={margin.left + chartWidth - (isMobile ? 80 : 105)}
+                    y={margin.top + chartHeight - (isMobile ? 21 : 41)}
+                    className={`${isMobile ? 'text-[10px]' : 'text-xs'} ${filterType === 'non-reasoning' ? 'fill-blue-600 dark:fill-blue-400 font-semibold' : 'fill-slate-700 dark:fill-slate-300'}`}
                     dominantBaseline="middle"
                     opacity={filterType === 'reasoning' ? 0.5 : 1}
                   >
-                    Non-Reasoning Models
+                    {isMobile ? 'Standard' : 'Non-Reasoning Models'}
                   </text>
                 </g>
               </g>

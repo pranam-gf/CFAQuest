@@ -3,7 +3,7 @@ import { getProviderInfo } from "@/lib/provider-mapping";
 
 interface ProviderLogoProps {
   modelName: string;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   showName?: boolean;
   className?: string;
 }
@@ -12,12 +12,14 @@ export function ProviderLogo({ modelName, size = "md", showName = false, classNa
   const provider = getProviderInfo(modelName);
   
   const sizeClasses = {
+    xs: "w-3 h-3",
     sm: "w-4 h-4",
     md: "w-6 h-6", 
     lg: "w-8 h-8"
   };
   
   const textSizeClasses = {
+    xs: "text-xs",
     sm: "text-xs",
     md: "text-sm",
     lg: "text-base"
@@ -28,7 +30,7 @@ export function ProviderLogo({ modelName, size = "md", showName = false, classNa
   // Helper function to determine if logo should be inverted in dark mode
   const getDarkModeLogoClass = (providerName: string): string => {
     const darkLogos = ['Writer', 'xAI', 'Anthropic', 'OpenAI', 'Moonshot AI', 'Alibaba'];
-    return darkLogos.includes(providerName) ? 'dark:invert' : '';
+    return darkLogos.includes(providerName) ? 'dark:invert dark:brightness-0' : '';
   };
 
   const logoProps = {

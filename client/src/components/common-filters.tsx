@@ -41,32 +41,34 @@ export const CommonFilters = React.memo(function CommonFilters({
   additionalFilters
 }: CommonFiltersProps) {
   return (
-    <div className="flex flex-col lg:flex-row gap-3 mb-6">
-      <div className="relative flex-1 min-w-0 lg:max-w-xs">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 dark:text-slate-400 h-4 w-4 z-10 pointer-events-none" />
-        <Input
-          placeholder="Search models..."
-          value={searchTerm}
-          onChange={(e) => onSearchTermChange(e.target.value)}
-          className="pl-10 bg-transparent border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 w-full"
+    <div className="space-y-3 mb-6">
+      <div className="flex flex-col lg:flex-row gap-3 items-start">
+        <div className="relative flex-shrink-0 w-full lg:w-80">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 dark:text-slate-400 h-4 w-4 z-10 pointer-events-none" />
+          <Input
+            placeholder="Search models..."
+            value={searchTerm}
+            onChange={(e) => onSearchTermChange(e.target.value)}
+            className="pl-10 bg-transparent border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 w-full h-10"
+          />
+        </div>
+        <GlobalFilters
+          providerFilter={providerFilter}
+          onProviderFilterChange={onProviderFilterChange}
+          contextLengthFilter={contextLengthFilter}
+          onContextLengthFilterChange={onContextLengthFilterChange}
+          modelTypeFilter={modelTypeFilter}
+          onModelTypeFilterChange={onModelTypeFilterChange}
+          strategyFilter={strategyFilter}
+          onStrategyFilterChange={onStrategyFilterChange}
+          availableColumns={availableColumns}
+          visibleColumns={visibleColumns}
+          onColumnVisibilityChange={onColumnVisibilityChange}
+          viewFilter={viewFilter}
+          onViewFilterChange={onViewFilterChange}
+          additionalFilters={additionalFilters}
         />
       </div>
-      <GlobalFilters
-        providerFilter={providerFilter}
-        onProviderFilterChange={onProviderFilterChange}
-        contextLengthFilter={contextLengthFilter}
-        onContextLengthFilterChange={onContextLengthFilterChange}
-        modelTypeFilter={modelTypeFilter}
-        onModelTypeFilterChange={onModelTypeFilterChange}
-        strategyFilter={strategyFilter}
-        onStrategyFilterChange={onStrategyFilterChange}
-        availableColumns={availableColumns}
-        visibleColumns={visibleColumns}
-        onColumnVisibilityChange={onColumnVisibilityChange}
-        viewFilter={viewFilter}
-        onViewFilterChange={onViewFilterChange}
-        additionalFilters={additionalFilters}
-      />
     </div>
   );
 });

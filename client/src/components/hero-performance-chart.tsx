@@ -293,9 +293,9 @@ export function HeroPerformanceChart() {
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
-  // Calculate dynamic bounds based on filtered data with more padding
-  const xValues = filteredData.map(d => d.essayScore);
-  const yValues = filteredData.map(d => d.mcqScore);
+  // Calculate dynamic bounds based on ALL data (not filtered) to maintain consistent scaling
+  const xValues = chartData.map(d => d.essayScore);
+  const yValues = chartData.map(d => d.mcqScore);
   
   // Fixed X-axis range for better spacing and less clutter
   const xMin = 0.75;
@@ -479,7 +479,7 @@ export function HeroPerformanceChart() {
               </g>
 
               {/* Connecting lines for reasoning models */}
-              <g className={`reasoning-line transition-all duration-200 ${hoveredPoint ? 'hidden' : ''} ${filterType === 'non-reasoning' ? 'opacity-20' : ''}`} clipPath="url(#chart-area)">
+              <g className={`reasoning-line transition-all duration-200 ${hoveredPoint && hoveredPoint.modelType !== 'Reasoning' ? 'opacity-0' : ''} ${filterType === 'non-reasoning' ? 'opacity-20' : ''}`} clipPath="url(#chart-area)">
                 {reasoningModels.length > 1 && (filterType === 'all' || filterType === 'reasoning') && (
                   <path
                     d={reasoningModels.map((point, index) => 
@@ -495,7 +495,7 @@ export function HeroPerformanceChart() {
               </g>
 
               {/* Connecting lines for non-reasoning models */}
-              <g className={`non-reasoning-line transition-all duration-200 ${hoveredPoint ? 'hidden' : ''} ${filterType === 'reasoning' ? 'opacity-20' : ''}`} clipPath="url(#chart-area)">
+              <g className={`non-reasoning-line transition-all duration-200 ${hoveredPoint && hoveredPoint.modelType === 'Reasoning' ? 'opacity-0' : ''} ${filterType === 'reasoning' ? 'opacity-20' : ''}`} clipPath="url(#chart-area)">
                 {nonReasoningModels.length > 1 && (filterType === 'all' || filterType === 'non-reasoning') && (
                   <path
                     d={nonReasoningModels.map((point, index) => 
@@ -538,9 +538,17 @@ export function HeroPerformanceChart() {
                         ? reasoningLabelPositions.get(point.model) 
                         : nonReasoningLabelPositions.get(point.model);
                       
-                      if (!labelPosition || labelPosition === 'hidden') return null;
+                      // Always show label for hovered point, even if it was marked as 'hidden'
+                      // Also show labels for models of the same type when any model is hovered
+                      const isHovered = hoveredPoint?.model === point.model;
+                      const isSameTypeAsHovered = hoveredPoint && hoveredPoint.modelType === point.modelType;
+                      const shouldShowLabel = isHovered || (isSameTypeAsHovered && hoveredPoint);
                       
-                      const yOffset = labelPosition === 'top' ? -25 : 35;
+                      if (!shouldShowLabel && (!labelPosition || labelPosition === 'hidden')) return null;
+                      
+                      // Use default 'top' position for items that were hidden but should now be shown
+                      const finalPosition = labelPosition === 'hidden' ? 'top' : labelPosition;
+                      const yOffset = finalPosition === 'top' ? -25 : 35;
                       
                       return (
                         <text
@@ -548,21 +556,26 @@ export function HeroPerformanceChart() {
                           y={margin.top + yScale(point.mcqScore) + yOffset}
                           textAnchor="middle"
                           className={`text-xs font-medium fill-slate-700 dark:fill-slate-300 pointer-events-none transition-all duration-200 ${
-                            hoveredPoint && hoveredPoint.model !== point.model ? 'hidden' : ''
+                            hoveredPoint && hoveredPoint.modelType !== point.modelType ? 'hidden' : ''
                           }`}
                           style={{ fontSize: '10px' }}
                         >
-                          {getShortDisplayName(point.model)}
+                          {isSameTypeAsHovered ? getDisplayName(point.model) : getShortDisplayName(point.model)}
                         </text>
                       );
                     })()}
                     
-                    <foreignObject x={margin.left + xScale(point.essayScore) - 16} y={margin.top + yScale(point.mcqScore) - 16} width={32} height={32} className="cursor-pointer" onMouseMove={(e) => handleMouseMove(e, point)} onMouseLeave={handleMouseLeave}>
-                      <div className={`w-8 h-8 transition-all duration-200 ${
+                    <foreignObject x={margin.left + xScale(point.essayScore) - 20} y={margin.top + yScale(point.mcqScore) - 20} width={40} height={40} className="cursor-pointer" onMouseMove={(e) => handleMouseMove(e, point)} onMouseLeave={handleMouseLeave} onClick={() => {
+                      const website = getModelWebsite(point.model);
+                      if (website) {
+                        window.open(website, '_blank', 'noopener,noreferrer');
+                      }
+                    }}>
+                      <div className={`w-10 h-10 transition-all duration-200 ${
                         hoveredPoint?.model === point.model 
                           ? 'scale-125 drop-shadow-lg' 
-                          : hoveredPoint 
-                            ? 'hover:scale-110 opacity-0' 
+                          : hoveredPoint && hoveredPoint.modelType !== point.modelType
+                            ? 'hover:scale-110 opacity-0 pointer-events-none' 
                             : 'hover:scale-110'
                       } overflow-visible flex items-center justify-center`}>
                         <ProviderLogo modelName={point.model} className="w-7 h-7" />

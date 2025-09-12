@@ -1,7 +1,6 @@
 import { useState, createContext, useContext, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { McqEvaluation, EssayEvaluation } from "@/types/models";
 import { calculateOverallScores, filterData, searchData } from "@/lib/data-processing";
 import { Input } from "@/components/ui/input";
@@ -59,6 +58,8 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
   const [strategyFilter, setStrategyFilter] = useState<string[]>([]);
   const [providerFilter, setProviderFilter] = useState<string[]>([]);
   const [contextLengthFilter, setContextLengthFilter] = useState<string[]>([]);
+  const [sortKey, setSortKey] = useState<string>("overallScore");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [visibleColumns, setVisibleColumns] = useState<string[]>([
     'provider', 'model', 'overallScore', 'mcqScore', 'essayScore', 'reasoning', 'context'
   ]);
@@ -111,7 +112,58 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
   const searchedEssayData = searchData(filteredEssayData, searchTerm, ["model", "strategyShort"]);
 
   const overallScores = calculateOverallScores(searchedMcqData, searchedEssayData);
-  const sortedOverallScores = [...overallScores].sort((a, b) => b.overallScore - a.overallScore);
+  
+  // Handle sorting
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
+      setSortDirection("desc");
+    }
+  };
+
+  // Sort the data based on current sort settings
+  const sortedOverallScores = [...overallScores].sort((a, b) => {
+    let aValue, bValue;
+    
+    switch (sortKey) {
+      case 'model':
+        aValue = a.model.toLowerCase();
+        bValue = b.model.toLowerCase();
+        break;
+      case 'overallScore':
+        aValue = a.overallScore;
+        bValue = b.overallScore;
+        break;
+      case 'reasoning':
+        const mcqMatchA = searchedMcqData.find(m => m.model === a.model);
+        const essayMatchA = searchedEssayData.find(m => m.model === a.model);
+        const mcqMatchB = searchedMcqData.find(m => m.model === b.model);
+        const essayMatchB = searchedEssayData.find(m => m.model === b.model);
+        // Convert reasoning to numeric: true (reasoning) = 1, false (non-reasoning) = 0
+        aValue = (mcqMatchA?.modelType === "Reasoning" || essayMatchA?.modelType === "Reasoning") ? 1 : 0;
+        bValue = (mcqMatchB?.modelType === "Reasoning" || essayMatchB?.modelType === "Reasoning") ? 1 : 0;
+        break;
+      case 'context':
+        const contextA = searchedMcqData.find(m => m.model === a.model)?.contextLength || searchedEssayData.find(m => m.model === a.model)?.contextLength || 0;
+        const contextB = searchedMcqData.find(m => m.model === b.model)?.contextLength || searchedEssayData.find(m => m.model === b.model)?.contextLength || 0;
+        aValue = contextA;
+        bValue = contextB;
+        break;
+      default:
+        aValue = a.overallScore;
+        bValue = b.overallScore;
+    }
+    
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      const comparison = aValue.localeCompare(bValue);
+      return sortDirection === 'asc' ? comparison : -comparison;
+    }
+    
+    const comparison = (aValue as number) - (bValue as number);
+    return sortDirection === 'asc' ? comparison : -comparison;
+  });
 
   // Available columns for the column selector - memoized to prevent re-renders
   const availableColumns = useMemo(() => [
@@ -134,7 +186,7 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
   ], []);
 
   // Column definitions for different tables - memoized to prevent re-renders
-  const overallColumns: ColumnDefinition[] = useMemo(() => [
+  const overallColumns: ColumnDefinition<any>[] = useMemo(() => [
     {
       key: 'provider',
       label: 'Provider',
@@ -146,13 +198,15 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
       key: 'model',
       label: 'Model',
       type: 'model',
-      className: 'w-40'
+      className: 'w-40',
+      sortable: true
     },
     {
       key: 'overallScore',
       label: 'Overall',
       type: 'custom',
       className: 'text-center w-20',
+      sortable: true,
       tooltip: 'Overall Score Formula',
       tooltipContent: {
         'Formula': '(Best MCQ Accuracy + Best Essay Self-Grade) / 2',
@@ -240,6 +294,7 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
       label: 'Reasoning',
       type: 'custom',
       className: 'text-center w-20',
+      sortable: true,
       render: (value: any, row: any) => {
         const mcqMatch = searchedMcqData.find(m => m.model === row.model);
         const essayMatch = searchedEssayData.find(m => m.model === row.model);
@@ -259,6 +314,7 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
       label: 'Context',
       type: 'custom',
       className: 'text-center w-20',
+      sortable: true,
       render: (value: any, row: any) => {
         const mcqMatch = searchedMcqData.find(m => m.model === row.model);
         const essayMatch = searchedEssayData.find(m => m.model === row.model);
@@ -324,6 +380,9 @@ function OverallContent({ viewFilter = "overall", onViewFilterChange }: OverallC
             columns={overallColumns}
             isLoading={isLoading}
             visibleColumns={visibleColumns}
+            onSort={handleSort}
+            sortKey={sortKey}
+            sortDirection={sortDirection}
           />
         </div>
       </div>

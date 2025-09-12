@@ -82,34 +82,47 @@ export function HeroSection() {
                 Comprehensive evaluation of language models across multiple reasoning strategies, 
                 from zero-shot to advanced chain-of-thought techniques.
               </motion.p>
-                            {/* AI Providers Label */}
+                            {/* CFA Level 3 Badge */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
-                className="mt-2 sm:mt-3 inline-flex items-center gap-1 bg-white/50 dark:bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl px-4 sm:px-6 py-2 border border-gray-300 dark:border-white/20 shadow-md shadow-gray-200/10 dark:shadow-black/10 mx-2"
+                className="mt-2 sm:mt-3 inline-flex items-center gap-2"
               >
                 <a 
                   href="/paper.pdf" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-xs sm:text-sm text-slate-500 dark:text-gray-400 font-bold uppercase tracking-wide text-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 flex items-center gap-1"
+                  className="group relative inline-flex items-center gap-2 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2 border-2 border-blue-200/40 dark:border-blue-300/30 transition-all duration-300"
                 >
-                Benchmarked on CFA Level 3
-                <svg 
-                  width="12" 
-                  height="12" 
-                  viewBox="0 0 16 16" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className="opacity-60"
-                >
-                  <path d="M6 2L14 2L14 10" />
-                  <path d="M14 2L2 14" />
-                </svg>
+                  {/* CFA Badge Icon */}
+                  <div className="flex items-center justify-center w-15 h-15 sm:w-15 sm:h-15 rounded-full bg-transparent">
+                    <img 
+                      src="/cfalogo.png" 
+                      alt="CFA Institute Logo" 
+                      className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
+                    />
+                  </div>
+                  
+                  <span className="text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-200 transition-all duration-200">
+                    Benchmarked on CFA Level 3
+                  </span>
+                  
+                  {/* External Link Icon */}
+                  <svg 
+                    width="14" 
+                    height="14" 
+                    viewBox="0 0 16 16" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                    className="text-slate-500 dark:text-slate-400 opacity-70 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-1 group-hover:-translate-y-1"
+                  >
+                    <path d="M6 2L14 2L14 10" />
+                    <path d="M14 2L2 14" />
+                  </svg>
                 </a>
               </motion.div>
             </div>

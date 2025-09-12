@@ -521,7 +521,7 @@ export function HeroPerformanceChart() {
                     key={point.model}
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ 
-                      opacity: isVisible ? 1 : 0.1, 
+                      opacity: isVisible ? 1 : 0, 
                       scale: isVisible ? 1 : 0.8 
                     }}
                     transition={{ duration: 0.3, delay: index * 0.02 }}

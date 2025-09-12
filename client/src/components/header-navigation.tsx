@@ -30,8 +30,10 @@ const NavLink = ({ href, children }: NavLinkProps) => {
           style={{
             boxShadow: "0px 0px 8px 0px #3b82f6",
           }}
-          layoutId="underline"
-          transition={{ type: 'spring', stiffness: 500, damping: 30, delay: 0.05 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
         />
       )}
     </Link>

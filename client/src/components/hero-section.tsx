@@ -93,7 +93,7 @@ export function HeroSection() {
                   href="/paper.pdf" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="group relative inline-flex items-center gap-2 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2 border-2 border-blue-200/40 dark:border-blue-300/30 transition-all duration-300"
+                  className="group relative inline-flex items-center gap-2 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2 border-2 border-blue-200/40 dark:border-blue-300/30 hover:bg-blue-50/80 dark:hover:bg-blue-900/20 hover:border-blue-300/60 dark:hover:border-blue-400/50 hover:-translate-y-1 transition-all duration-300"
                 >
                   {/* CFA Badge Icon */}
                   <div className="flex items-center justify-center w-15 h-15 sm:w-15 sm:h-15 rounded-full bg-transparent">
@@ -108,20 +108,21 @@ export function HeroSection() {
                     Benchmarked on CFA Level 3
                   </span>
                   
-                  {/* External Link Icon */}
+                  {/* Minimalist Arrow Icon */}
                   <svg 
-                    width="14" 
-                    height="14" 
-                    viewBox="0 0 16 16" 
+                    width="12" 
+                    height="12" 
+                    viewBox="0 0 12 12" 
                     fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className="text-slate-500 dark:text-slate-400 opacity-70 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-1 group-hover:-translate-y-1"
+                    className="text-slate-600 dark:text-slate-400 opacity-70 group-hover:opacity-100 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-all duration-200"
                   >
-                    <path d="M6 2L14 2L14 10" />
-                    <path d="M14 2L2 14" />
+                    <path 
+                      d="M3 9L9 3M9 9V3H3" 
+                      stroke="currentColor" 
+                      strokeWidth="1.5" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </a>
               </motion.div>
